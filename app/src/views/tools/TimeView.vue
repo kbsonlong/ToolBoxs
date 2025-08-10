@@ -506,11 +506,11 @@ const convertDateString = () => {
   }
   
   try {
-    const result = parseDateTime(dateStringInput.value)
-    const date = new Date(result.timestamp * 1000)
+    const timestamp = parseDateTime(dateStringInput.value)
+    const date = new Date(timestamp * 1000)
     
     dateResult.value = {
-      timestamp: result.timestamp,
+      timestamp: timestamp,
       timestampMs: date.getTime(),
       iso: date.toISOString(),
       utc: date.toUTCString()

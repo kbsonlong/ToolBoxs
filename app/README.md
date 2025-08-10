@@ -128,6 +128,40 @@ npm run build
 npm run preview
 ```
 
+## 🚀 部署
+
+### GitHub Pages 自动部署
+
+本项目已配置 GitHub Actions 自动部署到 GitHub Pages。当代码推送到 `main` 分支时，会自动触发构建和部署流程。
+
+#### 部署步骤：
+
+1. **启用 GitHub Pages**：
+   - 进入 GitHub 仓库设置页面
+   - 找到 "Pages" 选项
+   - 在 "Source" 中选择 "GitHub Actions"
+
+2. **推送代码**：
+   ```bash
+   git add .
+   git commit -m "Add GitHub Actions deployment"
+   git push origin main
+   ```
+
+3. **查看部署状态**：
+   - 在 GitHub 仓库的 "Actions" 标签页查看构建状态
+   - 部署成功后，可通过 `https://[username].github.io/toolboxs/` 访问
+
+#### 本地构建测试：
+
+```bash
+# 构建生产版本
+npm run build
+
+# 预览构建结果
+npm run preview
+```
+
 ## 🧪 测试
 
 ### 单元测试

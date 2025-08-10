@@ -386,7 +386,9 @@ import {
 import {
   generateQRCode as generateQRCodeUtil,
   formatQRCodeText,
-  getQRCodeCapacity,
+  getQRCodeCapacity
+} from '@/services/qrService'
+import type {
   QRCodeOptions,
   QRCodeResult
 } from '@/services/qrService'

@@ -131,8 +131,8 @@ export function parsePEMCertificate(pemData: string): CertificateValidationResul
     const cert = forge.pki.certificateFromPem(pemData)
     
     // 提取基本信息
-    const subject = extractDistinguishedName(cert.subject)
-    const issuer = extractDistinguishedName(cert.issuer)
+    const subject = extractDistinguishedName(cert.subject.attributes)
+    const issuer = extractDistinguishedName(cert.issuer.attributes)
     
     // 计算有效期信息
     const now = new Date()

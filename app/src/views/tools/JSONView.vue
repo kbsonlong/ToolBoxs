@@ -165,8 +165,8 @@
           <el-descriptions :column="2" border>
             <el-descriptions-item label="最大深度">{{ jsonStats.maxDepth }}</el-descriptions-item>
             <el-descriptions-item label="总键数量">{{ jsonStats.totalKeys }}</el-descriptions-item>
-            <el-descriptions-item label="文件大小">{{ formatFileSize(new Blob([inputJSON]).size) }}</el-descriptions-item>
-            <el-descriptions-item label="格式化后大小">{{ formatFileSize(new Blob([outputJSON]).size) }}</el-descriptions-item>
+            <el-descriptions-item label="文件大小">{{ formatFileSize(inputFileSize) }}</el-descriptions-item>
+            <el-descriptions-item label="格式化后大小">{{ formatFileSize(outputFileSize) }}</el-descriptions-item>
           </el-descriptions>
         </div>
       </div>
@@ -240,6 +240,14 @@ const outputLines = computed(() => {
 const compressionRatio = computed(() => {
   if (!inputJSON.value || !outputJSON.value) return 0
   return Math.round((outputJSON.value.length / inputJSON.value.length) * 100)
+})
+
+const inputFileSize = computed(() => {
+  return new Blob([inputJSON.value]).size
+})
+
+const outputFileSize = computed(() => {
+  return new Blob([outputJSON.value]).size
 })
 
 const validationStatus = computed(() => {
