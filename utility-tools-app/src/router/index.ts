@@ -12,8 +12,8 @@ const routes: RouteRecordRaw[] = [
     name: 'home',
     component: HomeView,
     meta: {
-      title: '实用工具集合',
-      description: '一站式在线实用工具平台'
+      title: 'ToolBoxs 工具宝',
+      description: 'ToolBoxs工具宝 - 一站式在线实用工具平台'
     }
   },
   {
@@ -94,7 +94,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/AboutView.vue'),
     meta: {
       title: '关于我们',
-      description: '关于实用工具集合平台'
+      description: '关于ToolBoxs工具宝平台'
     }
   },
   {

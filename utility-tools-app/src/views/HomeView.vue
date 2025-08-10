@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { toolRoutes, getCategories, getToolsByCategory } from '@/router'
+import { useToolStatsStore } from '@/stores/toolStats'
 import {
   ElRow,
   ElCol,
@@ -23,7 +24,8 @@ import {
   ArrowRight,
   Tools,
   Star,
-  TrendCharts
+  TrendCharts,
+  Trophy
 } from '@element-plus/icons-vue'
 
 // 图标映射
@@ -38,6 +40,9 @@ const iconMap = {
   DocumentChecked
 }
 
+// 使用工具统计store
+const toolStatsStore = useToolStatsStore()
+
 // 获取所有分类
 const categories = computed(() => getCategories())
 
@@ -46,12 +51,21 @@ const getToolsInCategory = (category: string) => {
   return getToolsByCategory(category)
 }
 
+// 获取常用工具（前3个）
+const popularTools = toolStatsStore.getTopTools(3)
+
 // 统计信息
 const stats = computed(() => ({
   totalTools: toolRoutes.length,
   totalCategories: categories.value.length,
+  totalClicks: toolStatsStore.totalClicks,
   features: ['免费使用', '无需注册', '数据安全', '响应式设计']
 }))
+
+// 处理工具点击
+const handleToolClick = (toolPath: string) => {
+  toolStatsStore.recordToolClick(toolPath)
+}
 </script>
 
 <template>
@@ -64,10 +78,10 @@ const stats = computed(() => ({
             <ElIcon class="hero-icon">
               <Tools />
             </ElIcon>
-            实用工具集合平台
+            ToolBoxs 工具宝
           </h1>
           <p class="hero-subtitle">
-            一站式在线实用工具平台，提供{{ stats.totalTools }}个常用工具，
+            ToolBoxs工具宝 - 一站式在线实用工具平台，提供{{ stats.totalTools }}个常用工具，
             涵盖{{ stats.totalCategories }}个分类，让您的工作更高效
           </p>
           <div class="hero-features">
@@ -108,11 +122,82 @@ const stats = computed(() => ({
               <div class="stat-label">工具分类</div>
             </div>
           </div>
+          <div class="stat-item">
+            <ElIcon class="stat-icon">
+              <Star />
+            </ElIcon>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats.totalClicks }}</div>
+              <div class="stat-label">使用次数</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <ElDivider />
+
+    <!-- 常用工具区域 -->
+    <section class="popular-tools-section" v-if="popularTools.length > 0">
+      <div class="section-header">
+        <h2 class="section-title">
+          <ElIcon class="section-icon">
+            <Trophy />
+          </ElIcon>
+          常用工具
+        </h2>
+        <p class="section-subtitle">根据使用频率为您推荐的热门工具</p>
+      </div>
+
+      <ElRow :gutter="20" class="popular-tools-grid">
+        <ElCol
+          v-for="(tool, index) in popularTools"
+          :key="tool.path"
+          :xs="24"
+          :sm="12"
+          :md="8"
+          class="popular-tool-col"
+        >
+          <ElCard class="popular-tool-card" shadow="hover">
+            <div class="popular-tool-content">
+              <div class="popular-tool-header">
+                <div class="popular-tool-rank">
+                  <ElIcon class="rank-icon" :class="`rank-${index + 1}`">
+                    <Trophy />
+                  </ElIcon>
+                  <span class="rank-number">{{ index + 1 }}</span>
+                </div>
+                <ElIcon class="popular-tool-icon" size="32">
+                  <component :is="iconMap[tool.icon as keyof typeof iconMap]" />
+                </ElIcon>
+              </div>
+              <h4 class="popular-tool-title">{{ tool.title }}</h4>
+              <p class="popular-tool-description">{{ tool.description }}</p>
+              <div class="popular-tool-stats">
+                <ElTag type="success" size="small">
+                  使用次数: {{ tool.count }}
+                </ElTag>
+              </div>
+              <div class="popular-tool-actions">
+                <RouterLink :to="tool.path">
+                  <ElButton 
+                    type="primary" 
+                    size="small" 
+                    class="popular-tool-button"
+                    @click="handleToolClick(tool.path)"
+                  >
+                    立即使用
+                    <ElIcon><ArrowRight /></ElIcon>
+                  </ElButton>
+                </RouterLink>
+              </div>
+            </div>
+          </ElCard>
+        </ElCol>
+      </ElRow>
+    </section>
+
+    <ElDivider v-if="popularTools.length > 0" />
 
     <!-- 工具展示区域 -->
     <section class="tools-section">
@@ -149,7 +234,12 @@ const stats = computed(() => ({
                   <p class="tool-description">{{ tool.description }}</p>
                   <div class="tool-actions">
                     <RouterLink :to="tool.path">
-                      <ElButton type="primary" size="small" class="tool-button">
+                      <ElButton 
+                        type="primary" 
+                        size="small" 
+                        class="tool-button"
+                        @click="handleToolClick(tool.path)"
+                      >
                          使用工具
                          <ElIcon><ArrowRight /></ElIcon>
                        </ElButton>
@@ -309,6 +399,132 @@ const stats = computed(() => ({
 .stat-label {
   font-size: 0.9rem;
   opacity: 0.8;
+}
+
+/* 常用工具区域样式 */
+.popular-tools-section {
+  padding: 60px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 20px;
+  margin-bottom: 40px;
+}
+
+.popular-tools-section .section-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #e67e22;
+}
+
+.popular-tools-section .section-icon {
+  color: #f39c12;
+}
+
+.popular-tools-grid {
+  margin-top: 40px;
+}
+
+.popular-tool-col {
+  margin-bottom: 20px;
+}
+
+.popular-tool-card {
+  height: 100%;
+  transition: all 0.3s ease;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.popular-tool-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 35px rgba(230, 126, 34, 0.2);
+  border-color: #f39c12;
+}
+
+.popular-tool-content {
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.popular-tool-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.popular-tool-rank {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rank-icon {
+  font-size: 20px;
+}
+
+.rank-icon.rank-1 {
+  color: #f1c40f;
+}
+
+.rank-icon.rank-2 {
+  color: #95a5a6;
+}
+
+.rank-icon.rank-3 {
+  color: #e67e22;
+}
+
+.rank-number {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #2c3e50;
+}
+
+.popular-tool-icon {
+  color: #e67e22;
+}
+
+.popular-tool-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 12px 0;
+}
+
+.popular-tool-description {
+  color: #7f8c8d;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  flex: 1;
+}
+
+.popular-tool-stats {
+  margin-bottom: 20px;
+}
+
+.popular-tool-actions {
+  margin-top: auto;
+}
+
+.popular-tool-button {
+  width: 100%;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%);
+  border: none;
+  font-weight: 600;
+}
+
+.popular-tool-button:hover {
+  background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
 }
 
 /* 工具展示区域样式 */
