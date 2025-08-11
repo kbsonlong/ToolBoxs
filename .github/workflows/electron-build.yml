@@ -47,6 +47,21 @@ jobs:
       run: npm ci
       working-directory: ./app
       
+    - name: Update version from tag
+      if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION="${GITHUB_REF#refs/tags/}"
+        fi
+        # 移除版本号前的 'v' 前缀（如果存在）
+        VERSION_NUMBER=${VERSION#v}
+        echo "Updating version to: $VERSION_NUMBER"
+        # 使用 npm version 命令更新版本号
+        npm version $VERSION_NUMBER --no-git-tag-version
+      working-directory: ./app
+      
     - name: Type check
       run: npm run type-check
       working-directory: ./app
