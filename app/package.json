@@ -150,7 +150,7 @@
         ]
       },
       "category": "Utility",
-      "icon": "public/favicon.ico",
+      "icon": "public/icon.png",
       "artifactName": "${productName}-${version}.${ext}"
     }
   }
