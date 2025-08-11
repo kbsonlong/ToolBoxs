@@ -1,8 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { RouterLink } from 'vue-router'
-import { toolRoutes, getCategories, getToolsByCategory } from '@/router'
+import { computed, watch, ref } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
+import { toolRoutes, getCategories, getToolsByCategory, getToolByName } from '@/router'
 import { useToolStatsStore } from '@/stores/toolStats'
+
+// 动态导入工具组件
+import Base64View from './tools/Base64View.vue'
+import MD5View from './tools/MD5View.vue'
+import JSONView from './tools/JSONView.vue'
+import TimeView from './tools/TimeView.vue'
+import PasswordView from './tools/PasswordView.vue'
+import QRCodeView from './tools/QRCodeView.vue'
+import TLSCertView from './tools/TLSCertView.vue'
+import Base64CertView from './tools/Base64CertView.vue'
 import {
   ElRow,
   ElCol,
@@ -40,6 +50,42 @@ const iconMap = {
   DocumentChecked
 }
 
+// 组件映射
+const componentMap = {
+  'base64': Base64View,
+  'md5': MD5View,
+  'json': JSONView,
+  'time': TimeView,
+  'password': PasswordView,
+  'qrcode': QRCodeView,
+  'certificate': TLSCertView,
+  'tls-cert': TLSCertView,
+  'base64-cert': Base64CertView,
+  'certificate-parser': Base64CertView
+}
+
+// 使用路由
+const route = useRoute()
+
+// 当前显示的工具
+const currentTool = ref<string | null>(null)
+const currentComponent = ref(null)
+
+// 监听查询参数变化
+watch(
+  () => route.query.page,
+  (newPage) => {
+    if (newPage && typeof newPage === 'string' && componentMap[newPage as keyof typeof componentMap]) {
+      currentTool.value = newPage
+      currentComponent.value = componentMap[newPage as keyof typeof componentMap]
+    } else {
+      currentTool.value = null
+      currentComponent.value = null
+    }
+  },
+  { immediate: true }
+)
+
 // 使用工具统计store
 const toolStatsStore = useToolStatsStore()
 
@@ -66,12 +112,38 @@ const stats = computed(() => ({
 const handleToolClick = (toolPath: string) => {
   toolStatsStore.recordToolClick(toolPath)
 }
+
+// 获取当前工具信息
+const currentToolInfo = computed(() => {
+  if (currentTool.value) {
+    return getToolByName(currentTool.value)
+  }
+  return null
+})
 </script>
 
 <template>
   <div class="home-page">
-    <!-- 英雄区域 -->
-    <section class="hero-section">
+    <!-- 当有查询参数page时，显示对应的工具组件 -->
+    <div v-if="currentComponent && currentToolInfo" class="tool-page">
+      <div class="tool-header">
+        <div class="tool-breadcrumb">
+          <RouterLink to="/" class="breadcrumb-link">首页</RouterLink>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">{{ currentToolInfo.title }}</span>
+        </div>
+        <h1 class="tool-page-title">{{ currentToolInfo.title }}</h1>
+        <p class="tool-page-description">{{ currentToolInfo.description }}</p>
+      </div>
+      <div class="tool-content">
+        <component :is="currentComponent" />
+      </div>
+    </div>
+    
+    <!-- 默认显示工具列表 -->
+    <div v-else>
+      <!-- 英雄区域 -->
+      <section class="hero-section">
       <div class="hero-content">
         <div class="hero-text">
           <h1 class="hero-title">
@@ -298,6 +370,7 @@ const handleToolClick = (toolPath: string) => {
         </ElCol>
       </ElRow>
     </section>
+    </div>
   </div>
 </template>
 
@@ -305,6 +378,64 @@ const handleToolClick = (toolPath: string) => {
 .home-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* 工具页面样式 */
+.tool-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+}
+
+.tool-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.tool-breadcrumb {
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.breadcrumb-link {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.breadcrumb-link:hover {
+  color: white;
+}
+
+.breadcrumb-separator {
+  margin: 0 8px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.breadcrumb-current {
+  color: white;
+  font-weight: 500;
+}
+
+.tool-page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tool-page-description {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.tool-content {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* 英雄区域样式 */

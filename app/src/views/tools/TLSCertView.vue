@@ -462,7 +462,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   Lock,
@@ -471,7 +471,7 @@ import {
   Download
 } from '@element-plus/icons-vue'
 import {
-  parseBase64Certificate as parseCertUtil,
+  parseBase64Certificate,
   validateCertificateChain,
   generateSelfSignedCertificate,
   fetchServerCertificate,
@@ -527,11 +527,34 @@ const parseCertificate = async () => {
   }
   
   try {
-    parseError.value = ''
-    certInfo.value = await parseCertUtil(certText.value)
-  } catch (error) {
+      parseError.value = ''
+      
+      // 预处理输入内容
+      const cleanInput = certText.value.trim()
+      
+      if (!cleanInput) {
+        throw new Error('证书内容为空')
+      }
+      
+      // 直接解析输入的证书内容（可能是完整的PEM格式经过base64编码）
+      certInfo.value = await parseBase64Certificate(cleanInput)
+    } catch (error) {
     console.error('证书解析失败:', error)
-    parseError.value = error instanceof Error ? error.message : '证书解析失败'
+    let errorMessage = '证书解析失败'
+    
+    if (error instanceof Error) {
+      if (error.message.includes('Too few bytes')) {
+        errorMessage = '证书数据不完整，请检查输入的证书内容是否完整'
+      } else if (error.message.includes('无效的Base64格式')) {
+        errorMessage = '证书格式错误，请确保输入的是有效的PEM格式证书'
+      } else if (error.message.includes('证书内容过短')) {
+        errorMessage = '证书内容过短，请输入完整的证书数据'
+      } else {
+        errorMessage = error.message
+      }
+    }
+    
+    parseError.value = errorMessage
     certInfo.value = null
   }
 }
@@ -539,7 +562,7 @@ const parseCertificate = async () => {
 /**
  * 处理文件上传
  */
-const handleFileChange = (file: any) => {
+const handleFileChange = (file: { raw: File }) => {
   const reader = new FileReader()
   reader.onload = (e) => {
     certText.value = e.target?.result as string
@@ -669,7 +692,7 @@ const getDaysLeftType = (daysLeft: number) => {
 /**
  * 获取有效期百分比
  */
-const getValidityPercentage = (validity: any) => {
+const getValidityPercentage = (validity: { notBefore: Date; notAfter: Date }) => {
   const total = validity.notAfter.getTime() - validity.notBefore.getTime()
   const elapsed = Date.now() - validity.notBefore.getTime()
   return Math.min(100, Math.max(0, (elapsed / total) * 100))
@@ -678,7 +701,7 @@ const getValidityPercentage = (validity: any) => {
 /**
  * 获取有效期颜色
  */
-const getValidityColor = (validity: any) => {
+const getValidityColor = (validity: { notBefore: Date; notAfter: Date }) => {
   const percentage = getValidityPercentage(validity)
   if (percentage > 90) return '#f56c6c'
   if (percentage > 75) return '#e6a23c'
@@ -694,7 +717,7 @@ const copyCertificate = async () => {
   try {
     await navigator.clipboard.writeText(generatedCert.value.certificate)
     ElMessage.success('证书已复制')
-  } catch (error) {
+  } catch {
     ElMessage.error('复制失败')
   }
 }
@@ -708,7 +731,7 @@ const copyPrivateKey = async () => {
   try {
     await navigator.clipboard.writeText(generatedCert.value.privateKey)
     ElMessage.success('私钥已复制')
-  } catch (error) {
+  } catch {
     ElMessage.error('复制失败')
   }
 }

@@ -17,7 +17,7 @@
               <el-col :xs="24" :lg="12">
                 <div class="input-section">
                   <h3>Base64证书输入</h3>
-                  
+
                   <el-form label-width="100px">
                     <el-form-item label="输入方式">
                       <el-radio-group v-model="inputMethod" @change="clearResults">
@@ -25,14 +25,14 @@
                         <el-radio label="file">证书文件</el-radio>
                       </el-radio-group>
                     </el-form-item>
-                    
+
                     <!-- Base64文本输入 -->
                     <el-form-item label="Base64内容" v-if="inputMethod === 'text'">
                       <el-input
                         v-model="base64Input"
                         type="textarea"
                         :rows="8"
-                        placeholder="请粘贴Base64编码的证书内容&#10;支持带或不带PEM头尾的格式&#10;&#10;例如：&#10;-----BEGIN CERTIFICATE-----&#10;MIIDXTCCAkWgAwIBAgIJAKoK/heBjcOuMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNV...&#10;-----END CERTIFICATE-----&#10;&#10;或直接Base64字符串：&#10;MIIDXTCCAkWgAwIBAgIJAKoK/heBjcOuMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNV..."
+                        placeholder="请粘贴Base64编码的证书内容&#10;支持带或不带PEM头尾的格式&#10;&#10;例如：MIIDXTCCAkWgAwIBAgIJAKoK/heBjcOuMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNV...;或直接Base64字符串：&#10;MIIDXTCCAkWgAwIBAgIJAKoK/heBjcOuMA0GCSqGSIb3DQEBBQUAMEUxCzAJBgNV..."
                         @input="parseBase64Certificate"
                         maxlength="50000"
                         show-word-limit
@@ -43,7 +43,7 @@
                         </el-text>
                       </div>
                     </el-form-item>
-                    
+
                     <!-- 文件上传 -->
                     <el-form-item label="证书文件" v-if="inputMethod === 'file'">
                       <el-upload
@@ -66,7 +66,7 @@
                         </template>
                       </el-upload>
                     </el-form-item>
-                    
+
                     <!-- 操作按钮 -->
                     <el-form-item>
                       <el-space>
@@ -84,11 +84,11 @@
                   </el-form>
                 </div>
               </el-col>
-              
+
               <el-col :xs="24" :lg="12">
                 <div class="result-section">
                   <h3>解析结果</h3>
-                  
+
                   <div v-if="certInfo" class="cert-info">
                     <!-- 基本信息 -->
                     <el-card class="info-card" shadow="never">
@@ -100,7 +100,7 @@
                           </el-tag>
                         </div>
                       </template>
-                      
+
                       <el-descriptions :column="1" size="small">
                         <el-descriptions-item label="通用名称">
                           <el-text>{{ certInfo.subject.commonName || 'N/A' }}</el-text>
@@ -122,13 +122,13 @@
                         </el-descriptions-item>
                       </el-descriptions>
                     </el-card>
-                    
+
                     <!-- 有效期信息 -->
                     <el-card class="info-card" shadow="never">
                       <template #header>
                         <span>有效期</span>
                       </template>
-                      
+
                       <el-descriptions :column="1" size="small">
                         <el-descriptions-item label="生效时间">
                           <el-text>{{ formatDate(certInfo.validity.notBefore) }}</el-text>
@@ -144,7 +144,7 @@
                           </el-text>
                         </el-descriptions-item>
                       </el-descriptions>
-                      
+
                       <div class="validity-progress">
                         <el-progress
                           :percentage="getValidityPercentage(certInfo.validity)"
@@ -153,13 +153,13 @@
                         />
                       </div>
                     </el-card>
-                    
+
                     <!-- 主体信息 -->
                     <el-card class="info-card" shadow="never">
                       <template #header>
                         <span>主体信息</span>
                       </template>
-                      
+
                       <el-descriptions :column="1" size="small">
                         <el-descriptions-item label="通用名称" v-if="certInfo.subject.commonName">
                           <el-text>{{ certInfo.subject.commonName }}</el-text>
@@ -181,13 +181,13 @@
                         </el-descriptions-item>
                       </el-descriptions>
                     </el-card>
-                    
+
                     <!-- 颁发者信息 -->
                     <el-card class="info-card" shadow="never">
                       <template #header>
                         <span>颁发者信息</span>
                       </template>
-                      
+
                       <el-descriptions :column="1" size="small">
                         <el-descriptions-item label="通用名称" v-if="certInfo.issuer.commonName">
                           <el-text>{{ certInfo.issuer.commonName }}</el-text>
@@ -203,13 +203,13 @@
                         </el-descriptions-item>
                       </el-descriptions>
                     </el-card>
-                    
+
                     <!-- 域名信息 -->
                     <el-card class="info-card" shadow="never" v-if="certInfo.domains.length > 0">
                       <template #header>
                         <span>域名信息 ({{ certInfo.domains.length }})</span>
                       </template>
-                      
+
                       <div class="domains-list">
                         <el-tag
                           v-for="domain in certInfo.domains"
@@ -221,13 +221,13 @@
                         </el-tag>
                       </div>
                     </el-card>
-                    
+
                     <!-- 指纹信息 -->
                     <el-card class="info-card" shadow="never">
                       <template #header>
                         <span>指纹信息</span>
                       </template>
-                      
+
                       <el-descriptions :column="1" size="small">
                         <el-descriptions-item label="SHA-1">
                           <el-text class="fingerprint">{{ certInfo.fingerprints.sha1 }}</el-text>
@@ -240,7 +240,7 @@
                       </el-descriptions>
                     </el-card>
                   </div>
-                  
+
                   <div v-else-if="parseError" class="error-display">
                     <el-alert
                       :title="parseError"
@@ -249,7 +249,7 @@
                       show-icon
                     />
                   </div>
-                  
+
                   <div v-else class="empty-display">
                     <el-empty description="请输入Base64证书内容进行解析" />
                   </div>
@@ -264,7 +264,7 @@
           <div class="convert-section">
             <div class="convert-input">
               <h3>证书格式转换</h3>
-              
+
               <el-form label-width="120px">
                 <el-form-item label="输入格式">
                   <el-select v-model="convertForm.inputFormat" style="width: 200px">
@@ -274,7 +274,7 @@
                     <el-option label="PKCS#12" value="p12" />
                   </el-select>
                 </el-form-item>
-                
+
                 <el-form-item label="输出格式">
                   <el-select v-model="convertForm.outputFormat" style="width: 200px">
                     <el-option label="PEM (Base64)" value="pem" />
@@ -283,7 +283,7 @@
                     <el-option label="Text (可读)" value="text" />
                   </el-select>
                 </el-form-item>
-                
+
                 <el-form-item label="证书内容">
                   <el-input
                     v-model="convertForm.input"
@@ -292,7 +292,7 @@
                     placeholder="请输入要转换的证书内容"
                   />
                 </el-form-item>
-                
+
                 <el-form-item>
                   <el-space>
                     <el-button type="primary" @click="convertCertificate" :loading="converting">
@@ -305,10 +305,10 @@
                 </el-form-item>
               </el-form>
             </div>
-            
+
             <div v-if="convertResult" class="convert-result">
               <h3>转换结果</h3>
-              
+
               <el-card shadow="never">
                 <template #header>
                   <div class="result-header">
@@ -323,7 +323,7 @@
                     </el-space>
                   </div>
                 </template>
-                
+
                 <div class="convert-output">
                   <pre v-if="convertForm.outputFormat === 'text'" class="text-output">{{ convertResult }}</pre>
                   <el-input
@@ -345,7 +345,7 @@
           <div class="batch-section">
             <div class="batch-input">
               <h3>批量证书解析</h3>
-              
+
               <el-form label-width="100px">
                 <el-form-item label="证书列表">
                   <el-input
@@ -355,7 +355,7 @@
                     placeholder="每个证书用空行分隔，支持PEM格式&#10;&#10;-----BEGIN CERTIFICATE-----&#10;证书1内容...&#10;-----END CERTIFICATE-----&#10;&#10;-----BEGIN CERTIFICATE-----&#10;证书2内容...&#10;-----END CERTIFICATE-----"
                   />
                 </el-form-item>
-                
+
                 <el-form-item>
                   <el-space>
                     <el-button type="primary" @click="batchParseCertificates" :loading="batchProcessing">
@@ -371,10 +371,10 @@
                 </el-form-item>
               </el-form>
             </div>
-            
+
             <div v-if="batchResults.length > 0" class="batch-results">
               <h3>批量处理结果 ({{ batchResults.length }} 个)</h3>
-              
+
               <div class="batch-summary">
                 <el-row :gutter="20">
                   <el-col :span="6">
@@ -391,7 +391,7 @@
                   </el-col>
                 </el-row>
               </div>
-              
+
               <el-table :data="batchResults" stripe style="width: 100%">
                 <el-table-column prop="index" label="序号" width="80" />
                 <el-table-column label="状态" width="100">
@@ -455,7 +455,7 @@
         </el-tab-pane>
       </el-tabs>
     </el-card>
-    
+
     <!-- 详情对话框 -->
     <el-dialog
       v-model="detailDialogVisible"
@@ -545,12 +545,14 @@ const selectedCert = ref<CertificateInfo | null>(null)
  * 解析Base64证书
  */
 const parseBase64Certificate = async () => {
+  console.log('解析Base64证书...')
+  console.log('输入数据:', base64Input.value)
   if (!base64Input.value.trim()) {
     certInfo.value = null
     parseError.value = ''
     return
   }
-  
+
   try {
     parseError.value = ''
     certInfo.value = await parseBase64CertUtil(base64Input.value)
@@ -613,13 +615,13 @@ const validateBase64 = () => {
     ElMessage.warning('请输入内容')
     return
   }
-  
+
   // 提取Base64内容（去除PEM头尾）
   let base64Content = base64Input.value
     .replace(/-----BEGIN[^-]+-----/g, '')
     .replace(/-----END[^-]+-----/g, '')
     .replace(/\s/g, '')
-  
+
   if (isValidBase64(base64Content)) {
     ElMessage.success('Base64格式验证通过')
   } else {
@@ -649,7 +651,7 @@ const getValidityType = (isValid: boolean) => {
 const getExpiryType = (expiryDate: Date) => {
   const now = new Date()
   const daysLeft = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-  
+
   if (daysLeft < 0) return 'danger'
   if (daysLeft < 30) return 'warning'
   return 'success'
@@ -703,7 +705,7 @@ const convertCertificate = async () => {
     ElMessage.warning('请输入要转换的证书内容')
     return
   }
-  
+
   converting.value = true
   try {
     convertResult.value = await convertCertificateFormat(
@@ -777,20 +779,20 @@ const batchParseCertificates = async () => {
     ElMessage.warning('请输入证书内容')
     return
   }
-  
+
   batchProcessing.value = true
   batchResults.value = []
-  
+
   try {
     // 分割证书（通过空行或PEM边界）
     const certs = batchInput.value
       .split(/(?=-----BEGIN CERTIFICATE-----)|\n\s*\n/)
       .filter(cert => cert.trim())
-    
+
     for (let i = 0; i < certs.length; i++) {
       const cert = certs[i].trim()
       if (!cert) continue
-      
+
       try {
         const certInfo = await parseBase64CertUtil(cert)
         batchResults.value.push({
@@ -805,13 +807,13 @@ const batchParseCertificates = async () => {
           error: error instanceof Error ? error.message : '解析失败'
         })
       }
-      
+
       // 添加小延迟避免阻塞UI
       if (i % 5 === 0) {
         await new Promise(resolve => setTimeout(resolve, 10))
       }
     }
-    
+
     ElMessage.success(`批量处理完成，共处理 ${batchResults.value.length} 个证书`)
   } catch (error) {
     console.error('批量处理失败:', error)
@@ -846,7 +848,7 @@ const exportBatchResults = () => {
       result.error || ''
     ].join(','))
   ].join('\n')
-  
+
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
@@ -1055,19 +1057,19 @@ const closeDetailDialog = () => {
   .tool-container {
     padding: 1rem;
   }
-  
+
   .tool-header h1 {
     font-size: 1.5rem;
   }
-  
+
   .tool-header p {
     font-size: 1rem;
   }
-  
+
   .domains-list {
     flex-direction: column;
   }
-  
+
   .result-header {
     flex-direction: column;
     gap: 0.5rem;
@@ -1079,11 +1081,11 @@ const closeDetailDialog = () => {
   .tool-container {
     padding: 0.5rem;
   }
-  
+
   .tool-header h1 {
     font-size: 1.3rem;
   }
-  
+
   .text-output,
   .result-textarea {
     font-size: 0.8rem;

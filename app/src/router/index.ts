@@ -4,7 +4,8 @@ import HomeView from '../views/HomeView.vue'
 
 /**
  * 路由配置
- * 为每个工具提供独立的URL路径
+ * 使用查询参数模式：toolboxs?page=base64
+ * 避免GitHub Pages多层级路径404问题
  */
 const routes: RouteRecordRaw[] = [
   {
@@ -14,78 +15,6 @@ const routes: RouteRecordRaw[] = [
     meta: {
       title: 'ToolBoxs 工具宝',
       description: 'ToolBoxs工具宝 - 一站式在线实用工具平台'
-    }
-  },
-  {
-    path: '/base64',
-    name: 'base64',
-    component: () => import('../views/tools/Base64View.vue'),
-    meta: {
-      title: 'Base64编码解码',
-      description: 'Base64字符串编码和解码工具'
-    }
-  },
-  {
-    path: '/md5',
-    name: 'md5',
-    component: () => import('../views/tools/MD5View.vue'),
-    meta: {
-      title: 'MD5哈希计算',
-      description: 'MD5哈希值计算和验证工具'
-    }
-  },
-  {
-    path: '/json',
-    name: 'json',
-    component: () => import('../views/tools/JSONView.vue'),
-    meta: {
-      title: 'JSON格式化',
-      description: 'JSON格式化、验证和压缩工具'
-    }
-  },
-  {
-    path: '/time',
-    name: 'time',
-    component: () => import('../views/tools/TimeView.vue'),
-    meta: {
-      title: '时间格式转换',
-      description: '时间戳转换和时间格式化工具'
-    }
-  },
-  {
-    path: '/password',
-    name: 'password',
-    component: () => import('../views/tools/PasswordView.vue'),
-    meta: {
-      title: '密码生成器',
-      description: '安全密码生成和强度检测工具'
-    }
-  },
-  {
-    path: '/qrcode',
-    name: 'qrcode',
-    component: () => import('../views/tools/QRCodeView.vue'),
-    meta: {
-      title: 'QR码生成器',
-      description: 'QR码生成和自定义工具'
-    }
-  },
-  {
-    path: '/certificate',
-    name: 'certificate',
-    component: () => import('../views/tools/TLSCertView.vue'),
-    meta: {
-      title: 'TLS证书验证',
-      description: 'TLS/SSL证书解析和验证工具'
-    }
-  },
-  {
-    path: '/certificate-parser',
-    name: 'certificate-parser',
-    component: () => import('../views/tools/Base64CertView.vue'),
-    meta: {
-      title: 'Base64证书解析',
-      description: 'Base64编码证书解析工具'
     }
   },
   {
@@ -155,7 +84,7 @@ export default router
 export const toolRoutes = [
   {
     name: 'base64',
-    path: '/base64',
+    path: '/?page=base64',
     title: 'Base64编码解码',
     description: 'Base64字符串编码和解码',
     icon: 'Document',
@@ -163,7 +92,7 @@ export const toolRoutes = [
   },
   {
     name: 'md5',
-    path: '/md5',
+    path: '/?page=md5',
     title: 'MD5哈希计算',
     description: 'MD5哈希值计算和验证',
     icon: 'Key',
@@ -171,7 +100,7 @@ export const toolRoutes = [
   },
   {
     name: 'json',
-    path: '/json',
+    path: '/?page=json',
     title: 'JSON格式化',
     description: 'JSON格式化、验证和压缩',
     icon: 'DocumentCopy',
@@ -179,7 +108,7 @@ export const toolRoutes = [
   },
   {
     name: 'time',
-    path: '/time',
+    path: '/?page=time',
     title: '时间格式转换',
     description: '时间戳转换和格式化',
     icon: 'Clock',
@@ -187,7 +116,7 @@ export const toolRoutes = [
   },
   {
     name: 'password',
-    path: '/password',
+    path: '/?page=password',
     title: '密码生成器',
     description: '安全密码生成和强度检测',
     icon: 'Lock',
@@ -195,7 +124,7 @@ export const toolRoutes = [
   },
   {
     name: 'qrcode',
-    path: '/qrcode',
+    path: '/?page=qrcode',
     title: 'QR码生成器',
     description: 'QR码生成和自定义',
     icon: 'Grid',
@@ -203,7 +132,7 @@ export const toolRoutes = [
   },
   {
     name: 'certificate',
-    path: '/certificate',
+    path: '/?page=certificate',
     title: 'TLS证书验证',
     description: 'TLS/SSL证书解析和验证',
     icon: 'Medal',
@@ -211,13 +140,13 @@ export const toolRoutes = [
   },
   {
     name: 'certificate-parser',
-    path: '/certificate-parser',
+    path: '/?page=certificate-parser',
     title: 'Base64证书解析',
     description: 'Base64编码证书解析',
     icon: 'DocumentChecked',
     category: '安全工具'
   }
-] as const
+]
 
 /**
  * 根据分类获取工具
@@ -246,5 +175,10 @@ export function getCategories() {
  * @returns 工具信息
  */
 export function getToolByName(name: string) {
-  return toolRoutes.find(tool => tool.name === name)
+  for (let i = 0; i < toolRoutes.length; i++) {
+    if (toolRoutes[i].name === name) {
+      return toolRoutes[i]
+    }
+  }
+  return undefined
 }
