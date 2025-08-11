@@ -20,7 +20,9 @@
 - **状态管理**: Pinia
 - **UI组件**: Element Plus
 - **构建工具**: Vite
+- **桌面应用**: Electron
 - **部署平台**: GitHub Pages
+- **CI/CD**: GitHub Actions
 
 ## 📦 安装和运行
 
@@ -75,6 +77,43 @@ toolboxs/
 └── utility-tools/        # 工具设计文档
 ```
 
+## 🖥️ Electron 桌面应用
+
+### 本地开发
+
+```bash
+# 开发模式运行 Electron
+npm run electron:dev
+
+# 构建 Electron 应用
+npm run electron:build
+
+# 打包发布版本
+npm run electron:dist
+```
+
+### 自动版本管理
+
+项目支持基于 Git tag 的自动版本更新：
+
+**通过 Git Tag 触发构建：**
+```bash
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+**手动触发构建：**
+1. 访问 GitHub Actions 页面
+2. 选择 "Build and Release Electron App"
+3. 点击 "Run workflow" 并输入版本号
+
+系统会自动：
+- 更新 `package.json` 中的版本号
+- 构建 macOS、Windows、Linux 版本
+- 创建 GitHub Release
+
+详细说明请查看：[版本自动更新指南](./docs/VERSION_AUTO_UPDATE_GUIDE.md)
+
 ## 🧪 测试与发布
 
 ### 本地测试
@@ -108,7 +147,11 @@ git push origin v1.0.0
 - **Windows**: NSIS 安装程序
 - **Linux**: AppImage 便携应用
 
-> 📖 详细说明请查看 [发布指南](docs/RELEASE_GUIDE.md)
+> 📖 详细说明请查看：
+> - [发布指南](docs/RELEASE_GUIDE.md)
+> - [版本自动更新指南](docs/VERSION_AUTO_UPDATE_GUIDE.md)
+> - [构建配置指南](docs/BUILD_CONFIGURATION_GUIDE.md)
+> - [Electron 调试指南](docs/ELECTRON_DEBUG_GUIDE.md)
 
 ## 🤝 贡献指南
 
