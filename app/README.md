@@ -2,6 +2,13 @@
 
 ToolBoxs工具宝 - 一个基于Vue.js 3的现代化实用工具集合，提供8个常用的开发和管理工具。每个工具都有独立的URL，支持移动端访问，界面简洁易用。
 
+## 📱 多平台支持
+
+- **Web版本**: 在浏览器中直接使用
+- **桌面应用**: 支持macOS DMG安装包
+- **移动端**: 响应式设计，完美适配手机和平板
+- **调试模式**: 支持生产环境调试，便于问题排查
+
 ## 🚀 功能特性
 
 ### 核心工具
@@ -118,9 +125,33 @@ npm run dev
 
 ### 生产构建
 
+项目支持多种构建方式，根据不同的部署场景自动配置正确的资源路径：
+
+#### GitHub Pages 构建
+```bash
+npm run build:github
+```
+使用 `/toolboxs/` 前缀，适用于 GitHub Pages 部署。
+
+#### 生产环境构建
+```bash
+npm run build:production
+```
+使用 `/` 根路径，适用于服务器根目录部署。
+
+#### Electron 应用构建
+```bash
+npm run build:electron
+```
+使用相对路径 `./`，适用于桌面应用打包。
+
+#### 默认构建（兼容性）
 ```bash
 npm run build
 ```
+等同于 `npm run build:github`，保持向后兼容。
+
+> 📖 **详细说明**：查看 [构建配置指南](./BUILD_CONFIGURATION_GUIDE.md) 了解更多构建配置的技术细节。
 
 ### 预览生产版本
 
@@ -275,6 +306,94 @@ src/
 - `tsconfig.app.json`: 应用配置
 - `tsconfig.node.json`: Node.js配置
 - `tsconfig.vitest.json`: 测试配置
+
+## 🖥️ 桌面应用开发
+
+### Electron开发环境
+
+启动Electron开发环境：
+
+```bash
+npm run electron:dev
+```
+
+这将同时启动Vite开发服务器和Electron应用。
+
+### 构建桌面应用
+
+#### 构建应用包（不生成安装包）
+
+```bash
+npm run electron:pack
+```
+
+#### 生成macOS DMG安装包
+
+```bash
+npm run electron:build
+# 或者
+npm run electron:dist
+```
+
+生成的DMG文件位于 `dist-electron/` 目录下。
+
+### Electron配置
+
+- **主进程文件**: `electron/main.js`
+- **构建配置**: `package.json` 中的 `build` 字段
+- **支持平台**: macOS (DMG), Windows (NSIS), Linux (AppImage)
+
+### 桌面应用特性
+
+- 原生窗口体验
+- 自动端口检测
+- 开发者工具集成
+- 多平台支持（macOS、Windows、Linux）
+- 自动更新支持
+
+### 🚀 自动发布流程
+
+项目配置了 GitHub Actions 自动构建和发布流程：
+
+#### 版本发布
+```bash
+# 创建版本标签
+git tag v1.0.0
+
+# 推送标签触发自动构建
+git push origin v1.0.0
+```
+
+#### 构建产物
+- **macOS**: Universal DMG（支持 Intel + Apple Silicon）
+- **Windows**: NSIS 安装程序（.exe）
+- **Linux**: AppImage 便携应用
+
+#### 手动触发
+也可以在 GitHub Actions 页面手动触发构建流程。
+
+> 📖 **详细说明**：查看 [发布指南](../docs/RELEASE_GUIDE.md) 了解完整的发布流程。
+
+
+### 调试模式
+
+如果打包后的应用出现空白页面或其他问题，可以启用调试模式：
+
+```bash
+# 启动调试模式（自动打开开发者工具）
+npm run electron:debug
+
+# 重新打包并启动调试模式
+npm run electron:pack-debug
+
+# 使用环境变量启动
+DEBUG=true open dist-electron/mac-arm64/Toolboxs.app
+
+# 使用启动脚本
+./start-debug.sh
+```
+
+详细的调试指南请参考 [ELECTRON_DEBUG_GUIDE.md](ELECTRON_DEBUG_GUIDE.md)
 
 ## 🚀 部署
 

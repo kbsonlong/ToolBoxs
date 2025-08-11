@@ -217,25 +217,25 @@ function extractSubjectInfo(attributes: forge.pki.CertificateField[]): Record<st
     const value = Array.isArray(attr.value) ? attr.value.join(', ') : attr.value
     switch (attr.shortName || attr.name) {
       case 'CN':
-        info.commonName = value
+        info.commonName = value || ''
         break
       case 'O':
-        info.organization = value
+        info.organization = value || ''
         break
       case 'OU':
-        info.organizationalUnit = value
+        info.organizationalUnit = value || ''
         break
       case 'C':
-        info.country = value
+        info.country = value || ''
         break
       case 'ST':
-        info.state = value
+        info.state = value || ''
         break
       case 'L':
-        info.locality = value
+        info.locality = value || ''
         break
       case 'emailAddress':
-        info.email = value
+        info.email = value || ''
         break
     }
   }

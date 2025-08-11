@@ -1,14 +1,24 @@
 {
   "name": "toolboxs",
   "version": "0.0.0",
+  "description": "A comprehensive toolbox application with various utilities",
+  "author": "Your Name",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/toolboxs.git"
+  },
   "type": "module",
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
+  "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
+    "build:github": "DEPLOY_TARGET=github-pages npm run build",
+    "build:production": "npm run build",
+    "build:electron": "ELECTRON=true npm run build-only",
     "preview": "vite preview",
     "test:unit": "vitest",
     "prepare": "cypress install",
@@ -17,7 +27,13 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "electron:dev": "cross-env ELECTRON=true concurrently \"npm run dev\" \"wait-on http://localhost:5176 && electron .\"",
+    "electron:build": "npm run build:electron && electron-builder",
+    "electron:pack": "npm run build:electron && electron-builder --dir",
+    "electron:debug": "DEBUG=true open dist-electron/mac-arm64/Toolboxs.app",
+    "electron:pack-debug": "npm run electron:pack && npm run electron:debug",
+    "electron:dist": "npm run build:electron && electron-builder --publish=never"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
@@ -42,7 +58,11 @@
     "@vue/eslint-config-typescript": "^14.6.0",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.7.0",
+    "concurrently": "^9.2.0",
+    "cross-env": "^10.0.0",
     "cypress": "^14.5.3",
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
     "eslint": "^9.31.0",
     "eslint-plugin-cypress": "^5.1.0",
     "eslint-plugin-vue": "~10.3.0",
@@ -55,6 +75,83 @@
     "vite": "^7.0.6",
     "vite-plugin-vue-devtools": "^8.0.0",
     "vitest": "^3.2.4",
-    "vue-tsc": "^3.0.4"
+    "vue-tsc": "^3.0.4",
+    "wait-on": "^8.0.4"
+  },
+  "build": {
+    "appId": "com.toolboxs.app",
+    "productName": "Toolboxs",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "dmg": {
+      "title": "Toolboxs - 工具宝",
+      "icon": "public/favicon.ico",
+      "iconSize": 80,
+      "contents": [
+        {
+          "x": 410,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 130,
+          "y": 150,
+          "type": "file"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "backgroundColor": "#ffffff",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "win": {
+      "target": {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      },
+      "icon": "public/favicon.ico",
+      "artifactName": "${productName}-${version}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ToolBoxs"
+    },
+    "linux": {
+      "target": {
+        "target": "AppImage",
+        "arch": [
+          "x64"
+        ]
+      },
+      "category": "Utility",
+      "icon": "public/favicon.ico",
+      "artifactName": "${productName}-${version}.${ext}"
+    }
   }
 }

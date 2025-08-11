@@ -1,0 +1,209 @@
+name: Build and Release Electron App
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # 当推送版本标签时触发
+  workflow_dispatch:  # 允许手动触发
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        include:
+          - os: macos-latest
+            platform: mac
+            arch: arm64,x64
+            ext: dmg
+          - os: windows-latest
+            platform: win
+            arch: x64
+            ext: exe
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            ext: AppImage
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: './app/package-lock.json'
+        
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./app
+      
+    - name: Type check
+      run: npm run type-check
+      working-directory: ./app
+      
+    - name: Build Electron app
+      run: npm run electron:build
+      working-directory: ./app
+      env:
+        ELECTRON_BUILDER_CACHE: .cache/electron-builder
+        
+    - name: Build DMG for macOS (Universal)
+      if: matrix.os == 'macos-latest'
+      run: |
+        npm run electron:dist -- --mac --universal
+      working-directory: ./app
+      env:
+        CSC_IDENTITY_AUTO_DISCOVERY: false  # 跳过代码签名
+        
+    - name: Build Windows installer
+      if: matrix.os == 'windows-latest'
+      run: npm run electron:dist -- --win --x64
+      working-directory: ./app
+      
+    - name: Build Linux AppImage
+      if: matrix.os == 'ubuntu-latest'
+      run: npm run electron:dist -- --linux --x64
+      working-directory: ./app
+      
+    - name: List build artifacts
+      run: |
+        echo "Build artifacts:"
+        ls -la ./app/dist-electron/
+        
+    - name: Upload macOS DMG
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-dmg
+        path: |
+          ./app/dist-electron/*.dmg
+          ./app/dist-electron/latest-mac.yml
+        retention-days: 30
+        
+    - name: Upload Windows installer
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-installer
+        path: |
+          ./app/dist-electron/*.exe
+          ./app/dist-electron/latest.yml
+        retention-days: 30
+        
+    - name: Upload Linux AppImage
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-appimage
+        path: |
+          ./app/dist-electron/*.AppImage
+          ./app/dist-electron/latest-linux.yml
+        retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts
+        
+    - name: Display structure of downloaded files
+      run: |
+        echo "Downloaded artifacts:"
+        find ./artifacts -type f -name "*" | head -20
+        
+    - name: Get version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        release_name: ToolBoxs ${{ steps.version.outputs.version }}
+        body: |
+          ## 🎉 ToolBoxs ${{ steps.version.outputs.version }} 发布
+          
+          ### 📦 下载链接
+          
+          - **macOS**: 下载 `.dmg` 文件
+          - **Windows**: 下载 `.exe` 文件  
+          - **Linux**: 下载 `.AppImage` 文件
+          
+          ### ✨ 主要特性
+          
+          - 🔧 多种实用工具集合
+          - 🌐 支持 Web 和桌面双平台
+          - 🎨 现代化 UI 设计
+          - 🚀 高性能本地应用
+          
+          ### 🔄 更新说明
+          
+          请查看 [更新日志](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) 了解详细更新内容。
+          
+          ---
+          
+          **安装说明**:
+          - macOS: 下载 DMG 文件，双击安装
+          - Windows: 下载 EXE 文件，运行安装
+          - Linux: 下载 AppImage 文件，添加执行权限后运行
+        draft: false
+        prerelease: false
+        
+    - name: Upload macOS DMG to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/macos-dmg/ToolBoxs-universal.dmg
+        asset_name: ToolBoxs-${{ steps.version.outputs.version }}-universal.dmg
+        asset_content_type: application/octet-stream
+        
+    - name: Upload Windows installer to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/windows-installer/ToolBoxs Setup.exe
+        asset_name: ToolBoxs-${{ steps.version.outputs.version }}-Setup.exe
+        asset_content_type: application/octet-stream
+        
+    - name: Upload Linux AppImage to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/linux-appimage/ToolBoxs.AppImage
+        asset_name: ToolBoxs-${{ steps.version.outputs.version }}.AppImage
+        asset_content_type: application/octet-stream

@@ -30,7 +30,7 @@ import {
   Lock,
   Grid,
   Medal,
-  DocumentChecked,
+  Check,
   ArrowRight,
   Tools,
   Star,
@@ -47,7 +47,7 @@ const iconMap = {
   Lock,
   Grid,
   Medal,
-  DocumentChecked
+  Check
 }
 
 // 组件映射
@@ -69,7 +69,7 @@ const route = useRoute()
 
 // 当前显示的工具
 const currentTool = ref<string | null>(null)
-const currentComponent = ref(null)
+const currentComponent = ref<typeof componentMap[keyof typeof componentMap] | null>(null)
 
 // 监听查询参数变化
 watch(

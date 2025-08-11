@@ -75,6 +75,41 @@ toolboxs/
 └── utility-tools/        # 工具设计文档
 ```
 
+## 🧪 测试与发布
+
+### 本地测试
+
+运行完整的构建测试：
+
+```bash
+# 执行构建测试脚本
+./scripts/test-build.sh
+```
+
+该脚本会验证：
+- 环境配置
+- 类型检查
+- 多种构建方式
+- 资源路径配置
+- Electron 打包
+
+### 自动发布
+
+项目配置了 GitHub Actions 自动构建和发布流程：
+
+```bash
+# 创建版本标签触发自动构建
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+自动构建将生成：
+- **macOS**: Universal DMG 安装包
+- **Windows**: NSIS 安装程序
+- **Linux**: AppImage 便携应用
+
+> 📖 详细说明请查看 [发布指南](docs/RELEASE_GUIDE.md)
+
 ## 🤝 贡献指南
 
 1. Fork 本仓库

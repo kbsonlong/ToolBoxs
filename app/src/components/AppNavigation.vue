@@ -19,7 +19,7 @@ import {
   Lock,
   Grid,
   Medal,
-  DocumentChecked,
+  Check,
   House,
   InfoFilled
 } from '@element-plus/icons-vue'
@@ -36,7 +36,7 @@ const iconMap = {
   Lock,
   Grid,
   Medal,
-  DocumentChecked,
+  Check,
   House,
   InfoFilled
 }

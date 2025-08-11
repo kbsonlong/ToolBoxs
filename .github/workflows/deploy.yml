@@ -38,8 +38,8 @@ jobs:
       run: npm run type-check
       working-directory: ./app
       
-    - name: Build
-      run: npm run build
+    - name: Build for GitHub Pages
+      run: npm run build:github
       working-directory: ./app
       
     - name: Setup Pages

@@ -68,7 +68,7 @@
                     
                     <el-form-item>
                       <el-space>
-                        <el-button type="primary" @click="generatePassword" :icon="Refresh">
+                        <el-button type="primary" @click="generatePassword" :icon="RefreshRight">
                           重新生成
                         </el-button>
                         <el-button @click="generateMultiple" :icon="Plus">
@@ -77,7 +77,7 @@
                         <el-button @click="usePreset('strong')" :icon="Lock">
                           强密码
                         </el-button>
-                        <el-button @click="usePreset('medium')" :icon="Warning">
+                        <el-button @click="usePreset('medium')" :icon="WarningFilled">
                           中等密码
                         </el-button>
                       </el-space>
@@ -337,9 +337,9 @@ import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import {
   Lock,
-  Refresh,
+  RefreshRight,
   Plus,
-  Warning,
+  WarningFilled,
   View,
   Hide,
   DocumentCopy,

@@ -17,7 +17,7 @@
               <h3>输入文本</h3>
               <el-space>
                 <el-button @click="clearInput" :icon="Delete">清空</el-button>
-                <el-button @click="loadSample" :icon="DocumentAdd">示例文本</el-button>
+                <el-button @click="loadSample" :icon="Plus">示例文本</el-button>
               </el-space>
             </div>
             
@@ -163,7 +163,7 @@
                 <h3>批量文本输入</h3>
                 <el-space>
                   <el-button @click="clearBatchInput" :icon="Delete">清空</el-button>
-                  <el-button @click="loadBatchSample" :icon="DocumentAdd">示例数据</el-button>
+                  <el-button @click="loadBatchSample" :icon="Plus">示例数据</el-button>
                   <el-button @click="calculateBatchHashes" :icon="Operation" type="primary">
                     批量计算
                   </el-button>
@@ -246,7 +246,7 @@ import {
   DocumentCopy,
   Download,
   Delete,
-  DocumentAdd,
+  Plus,
   Operation
 } from '@element-plus/icons-vue'
 import { generateMD5, verifyHash as verifyHashUtil } from '@/services/cryptoService'
