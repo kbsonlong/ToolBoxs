@@ -40,9 +40,19 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    chunkSizeWarningLimit: 1000, // 提高警告阈值到 1MB
     rollupOptions: {
       output: {
-        manualChunks: undefined
+        manualChunks: {
+          // 将 Vue 相关库分离
+          'vue-vendor': ['vue', 'vue-router', 'pinia'],
+          // 将 Element Plus 分离
+          'element-plus': ['element-plus'],
+          // 将工具库分离
+          'utils': ['crypto-js', 'qrcode', 'jsqr'],
+          // 将其他大型依赖分离
+          'vendor': ['@element-plus/icons-vue']
+        }
       }
     }
   }
