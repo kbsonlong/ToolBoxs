@@ -82,6 +82,112 @@ export interface SelfSignedCertResult {
 }
 
 /**
+ * 解析证书
+ * @param Cert 的证书内容
+ * @returns 证书信息
+ */
+export async function parseCertificates(localCert: string): Promise<CertificateInfo> {
+  try {
+    // 输入验证
+    if (!localCert || typeof localCert !== 'string') {
+      throw new Error('证书内容不能为空')
+    }
+
+    // 如果输入包含PEM标记，提取Base64部分
+    if (localCert.includes('-----BEGIN CERTIFICATE-----')) {
+      const pemMatch = localCert.match(/-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/)
+      if (pemMatch && pemMatch[1]) {
+        localCert = pemMatch[1].replace(/\s/g, '')
+      } else {
+        throw new Error('PEM格式证书解析失败')
+      }
+    } else {
+      // 移除所有空白字符
+      localCert = localCert.replace(/\s/g, '')
+    }
+
+    // 检查清理后的内容
+    if (!localCert) {
+      throw new Error('证书内容为空或格式不正确')
+    }
+
+    // 检查证书长度（证书通常至少几百字节）
+    if (localCert.length < 100) {
+      throw new Error('证书内容过短，可能不是有效的证书')
+    }
+
+    // 使用node-forge解析证书
+    let derBytes: string
+    try {
+      derBytes = forge.util.decode64(localCert)
+    } catch (decodeError) {
+      throw new Error('证书解析失败: ' + (decodeError instanceof Error ? decodeError.message : '未知错误'))
+    }
+    // 检查DER数据长度
+    if (!derBytes || derBytes.length < 50) {
+      throw new Error('解码后的证书数据过短，可能不是有效的证书')
+    }
+
+    let asn1: forge.asn1.Asn1
+    try {
+      asn1 = forge.asn1.fromDer(derBytes)
+    } catch (asnError) {
+      throw new Error('ASN.1解析失败: ' + (asnError instanceof Error ? asnError.message : '未知错误'))
+    }
+    const cert = forge.pki.certificateFromAsn1(asn1)
+
+    // 提取证书信息
+    const now = new Date()
+    const notBefore = cert.validity.notBefore
+    const notAfter = cert.validity.notAfter
+    const isValid = now >= notBefore && now <= notAfter
+    const daysLeft = Math.ceil((notAfter.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+
+    // 提取主题信息
+     const subject = extractSubjectInfo(cert.subject.attributes)
+     const issuer = extractSubjectInfo(cert.issuer.attributes)
+
+    // 提取域名信息
+    const domains = extractDomains(cert)
+
+    // 生成指纹
+    const fingerprints = {
+      sha1: forge.md.sha1.create().update(derBytes).digest().toHex().toUpperCase().match(/.{2}/g)?.join(':') || '',
+      sha256: forge.md.sha256.create().update(derBytes).digest().toHex().toUpperCase().match(/.{2}/g)?.join(':') || ''
+    }
+
+    // 提取扩展信息
+    const extensions = extractExtensions(cert)
+
+    const certInfo: CertificateInfo = {
+      subject,
+      issuer,
+      serialNumber: cert.serialNumber,
+      version: cert.version + 1, // ASN.1版本从0开始，显示时加1
+      signatureAlgorithm: getSignatureAlgorithm(cert),
+      publicKey: {
+        algorithm: getPublicKeyAlgorithm(cert.publicKey),
+        size: getPublicKeySize(cert.publicKey)
+      },
+      validity: {
+        notBefore,
+        notAfter,
+        isValid,
+        daysLeft
+      },
+      domains,
+      fingerprints,
+      extensions
+    }
+
+    return certInfo
+  } catch (error) {
+    console.error('证书解析失败:', error)
+    throw new Error(`证书解析失败: ${error instanceof Error ? error.message : '未知错误'}`)
+  }
+}
+
+/**
  * 解析Base64编码的证书
  * @param base64Cert Base64编码的证书内容
  * @returns 证书信息

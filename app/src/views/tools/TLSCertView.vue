@@ -471,7 +471,7 @@ import {
   Download
 } from '@element-plus/icons-vue'
 import {
-  parseBase64Certificate,
+  parseCertificates,
   validateCertificateChain,
   generateSelfSignedCertificate,
   fetchServerCertificate,
@@ -535,9 +535,10 @@ const parseCertificate = async () => {
       if (!cleanInput) {
         throw new Error('证书内容为空')
       }
+      console.log('清理后的输入:', cleanInput)
       
       // 直接解析输入的证书内容（可能是完整的PEM格式经过base64编码）
-      certInfo.value = await parseBase64Certificate(cleanInput)
+      certInfo.value = await parseCertificates(cleanInput)
     } catch (error) {
     console.error('证书解析失败:', error)
     let errorMessage = '证书解析失败'
