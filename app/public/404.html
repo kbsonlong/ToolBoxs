@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>ToolBoxs 工具宝</title>
+  <script type="text/javascript">
+    // GitHub Pages SPA 路由重定向解决方案
+    // 当用户直接访问子路径或刷新页面时，GitHub Pages会返回404
+    // 这个脚本会将路径信息保存到sessionStorage，然后重定向到index.html
+    
+    var pathSegmentsToKeep = 1;
+    var l = window.location;
+    
+    // 将当前路径信息保存到sessionStorage
+    l.replace(
+      l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+      l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+      l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+      (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+      l.hash
+    );
+  </script>
+</head>
+<body>
+  <div style="text-align: center; margin-top: 50px;">
+    <h2>正在重定向...</h2>
+    <p>如果页面没有自动跳转，请<a href="/toolboxs/">点击这里</a>返回首页</p>
+  </div>
+</body>
+</html>
