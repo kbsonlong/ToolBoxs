@@ -152,6 +152,8 @@ npm run build
 等同于 `npm run build:github`，保持向后兼容。
 
 > 📖 **详细说明**：查看 [构建配置指南](./BUILD_CONFIGURATION_GUIDE.md) 了解更多构建配置的技术细节。
+> 
+> 🔧 **性能优化**：查看 [构建优化指南](./BUILD_OPTIMIZATION_GUIDE.md) 了解如何优化构建性能和解决常见问题。
 
 ### 预览生产版本
 

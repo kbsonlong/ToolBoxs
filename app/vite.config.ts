@@ -49,7 +49,7 @@ export default defineConfig({
           // 将 Element Plus 分离
           'element-plus': ['element-plus'],
           // 将工具库分离
-          'utils': ['crypto-js', 'qrcode', 'jsqr'],
+          'utils': ['crypto-js', 'qrcode', 'node-forge'],
           // 将其他大型依赖分离
           'vendor': ['@element-plus/icons-vue']
         }
