@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect width="256" height="256" fill="#409EFF" rx="32"/>
+  <g fill="white">
+    <!-- 工具箱图标 -->
+    <rect x="64" y="80" width="128" height="96" rx="8" stroke="white" stroke-width="4" fill="none"/>
+    <!-- 工具箱手柄 -->
+    <rect x="112" y="64" width="32" height="16" rx="8" fill="white"/>
+    <!-- 工具图标 -->
+    <circle cx="96" cy="120" r="8" fill="white"/>
+    <rect x="120" y="112" width="16" height="16" rx="2" fill="white"/>
+    <polygon points="152,112 168,112 160,128" fill="white"/>
+    <!-- 底部装饰线 -->
+    <rect x="80" y="160" width="96" height="4" rx="2" fill="white"/>
+  </g>
+</svg>
