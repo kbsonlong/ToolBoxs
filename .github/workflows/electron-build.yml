@@ -60,19 +60,19 @@ jobs:
     - name: Build DMG for macOS (Universal)
       if: matrix.os == 'macos-latest'
       run: |
-        npm run electron:dist -- --mac --universal
+        npm run electron:dist -- --mac --universal --publish=never
       working-directory: ./app
       env:
         CSC_IDENTITY_AUTO_DISCOVERY: false  # 跳过代码签名
         
     - name: Build Windows installer
       if: matrix.os == 'windows-latest'
-      run: npm run electron:dist -- --win --x64
+      run: npm run electron:dist -- --win --x64 --publish=never
       working-directory: ./app
       
     - name: Build Linux AppImage
       if: matrix.os == 'ubuntu-latest'
-      run: npm run electron:dist -- --linux --x64
+      run: npm run electron:dist -- --linux --x64 --publish=never
       working-directory: ./app
       
     - name: List build artifacts
