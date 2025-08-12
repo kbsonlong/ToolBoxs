@@ -86,6 +86,10 @@
     "directories": {
       "output": "dist-electron"
     },
+    "publish": {
+      "provider": "github",
+      "releaseType": "draft"
+    },
     "files": [
       "dist/**/*",
       "electron/**/*",

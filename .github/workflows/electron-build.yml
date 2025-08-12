@@ -15,12 +15,20 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
         include:
           - os: macos-latest
             platform: mac
             arch: arm64,x64
             ext: dmg
+          - os: windows-latest
+            platform: win
+            arch: x64
+            ext: exe
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            ext: AppImage
          
     
     runs-on: ${{ matrix.os }}
@@ -61,80 +69,36 @@ jobs:
       run: npm run type-check
       working-directory: ./app
       
-    - name: Build Electron app
-      run: npm run electron:build
+    - name: Build Electron app for ${{ matrix.platform }}
+      run: |
+        if [ "${{ matrix.platform }}" = "mac" ]; then
+          npm run electron:dist -- --mac --universal --publish=never
+        elif [ "${{ matrix.platform }}" = "win" ]; then
+          npm run electron:dist -- --win --x64 --publish=never
+        elif [ "${{ matrix.platform }}" = "linux" ]; then
+          npm run electron:dist -- --linux --x64 --publish=never
+        fi
       working-directory: ./app
+      shell: bash
       env:
         ELECTRON_BUILDER_CACHE: .cache/electron-builder
-        
-    - name: Build DMG for macOS (Universal)
-      if: matrix.os == 'macos-latest'
-      run: |
-        npm run electron:dist -- --mac --universal --publish=never
-      working-directory: ./app
-      env:
+        CYPRESS_INSTALL_BINARY: 0
         CSC_IDENTITY_AUTO_DISCOVERY: false  # 跳过代码签名
-        
-    - name: Clean Windows cache (Windows only)
-      if: matrix.os == 'windows-latest'
-      run: |
-        if (Test-Path "node_modules") {
-          Remove-Item -Recurse -Force "node_modules" -ErrorAction SilentlyContinue
-        }
-        npm cache clean --force
-      working-directory: ./app
-      shell: powershell
-      
-    - name: Build Windows installer
-      if: matrix.os == 'windows-latest'
-      run: npm run electron:dist -- --win --x64 --publish=never
-      working-directory: ./app
-      env:
-        ELECTRON_BUILDER_CACHE: .cache/electron-builder
-        CYPRESS_INSTALL_BINARY: 0
-        npm_config_cache: C:\npm\cache
-      
-    - name: Build Linux AppImage
-      if: matrix.os == 'ubuntu-latest'
-      run: npm run electron:dist -- --linux --x64 --publish=never
-      working-directory: ./app
-      env:
-        ELECTRON_BUILDER_CACHE: .cache/electron-builder
-        CYPRESS_INSTALL_BINARY: 0
+        GH_TOKEN: ""  # 明确设置为空，避免自动发布
+        GITHUB_TOKEN: ""  # 明确设置为空，避免自动发布
       
     - name: List build artifacts
       run: |
         echo "Build artifacts:"
         ls -la ./app/dist-electron/
         
-    - name: Upload macOS DMG
-      if: matrix.os == 'macos-latest'
+    - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: macos-dmg
+        name: ${{ matrix.platform }}-${{ matrix.arch }}
         path: |
-          ./app/dist-electron/*.dmg
-          ./app/dist-electron/latest-mac.yml
-        retention-days: 30
-        
-    - name: Upload Windows installer
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v4
-      with:
-        name: windows-installer
-        path: |
-          ./app/dist-electron/*.exe
-          ./app/dist-electron/latest.yml
-        retention-days: 30
-        
-    - name: Upload Linux AppImage
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v4
-      with:
-        name: linux-appimage
-        path: |
-          ./app/dist-electron/*.AppImage
-          ./app/dist-electron/latest-linux.yml
+          ./app/dist-electron/*.${{ matrix.ext }}
+          ./app/dist-electron/latest*.yml
         retention-days: 30
 
   release:
@@ -205,32 +169,30 @@ jobs:
         draft: false
         prerelease: false
         
-    - name: Upload macOS DMG to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/macos-dmg/ToolBoxs-universal.dmg
-        asset_name: ToolBoxs-${{ steps.version.outputs.version }}-universal.dmg
-        asset_content_type: application/octet-stream
+    - name: Upload release assets
+      run: |
+        # Upload macOS DMG
+        if [ -f "./artifacts/mac-arm64,x64/"*.dmg ]; then
+          for file in ./artifacts/mac-arm64,x64/*.dmg; do
+            filename=$(basename "$file")
+            gh release upload ${{ steps.version.outputs.version }} "$file" --clobber
+          done
+        fi
         
-    - name: Upload Windows installer to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/windows-installer/ToolBoxs Setup.exe
-        asset_name: ToolBoxs-${{ steps.version.outputs.version }}-Setup.exe
-        asset_content_type: application/octet-stream
+        # Upload Windows installer
+        if [ -f "./artifacts/win-x64/"*.exe ]; then
+          for file in ./artifacts/win-x64/*.exe; do
+            filename=$(basename "$file")
+            gh release upload ${{ steps.version.outputs.version }} "$file" --clobber
+          done
+        fi
         
-    - name: Upload Linux AppImage to Release
-      uses: actions/upload-release-asset@v1
+        # Upload Linux AppImage
+        if [ -f "./artifacts/linux-x64/"*.AppImage ]; then
+          for file in ./artifacts/linux-x64/*.AppImage; do
+            filename=$(basename "$file")
+            gh release upload ${{ steps.version.outputs.version }} "$file" --clobber
+          done
+        fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/linux-appimage/ToolBoxs.AppImage
-        asset_name: ToolBoxs-${{ steps.version.outputs.version }}.AppImage
-        asset_content_type: application/octet-stream

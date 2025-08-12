@@ -147,7 +147,17 @@ git push origin v1.0.0
 - **Windows**: NSIS 安装程序
 - **Linux**: AppImage 便携应用
 
+### GitHub Action 配置说明
+
+项目已解决了 "GitHub Personal Access Token is not set" 的问题：
+
+- ✅ 正确配置了环境变量，避免 electron-builder 自动发布冲突
+- ✅ 使用统一的构建流程支持多平台
+- ✅ 独立的 release job 处理发布流程
+- ✅ 自动版本管理和制品上传
+
 > 📖 详细说明请查看：
+> - [GitHub Action 配置指南](docs/GITHUB_ACTION_SETUP.md) **← 解决 Token 问题**
 > - [发布指南](docs/RELEASE_GUIDE.md)
 > - [版本自动更新指南](docs/VERSION_AUTO_UPDATE_GUIDE.md)
 > - [构建配置指南](docs/BUILD_CONFIGURATION_GUIDE.md)
