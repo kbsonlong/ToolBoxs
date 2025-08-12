@@ -29,11 +29,11 @@
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
     "electron:dev": "cross-env ELECTRON=true concurrently \"npm run dev\" \"wait-on http://localhost:5176 && electron .\"",
-    "electron:build": "npm run build:electron && cross-env GH_TOKEN=${{ secrets.GH_TOKEN }} GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} electron-builder --publish=never",
-    "electron:pack": "npm run build:electron && cross-env GH_TOKEN=${{ secrets.GH_TOKEN }} GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} electron-builder --dir",
+    "electron:build": "npm run build:electron && cross-env GH_TOKEN=${GITHUB_TOKEN} GITHUB_TOKEN=${GITHUB_TOKEN} electron-builder --publish=never",
+    "electron:pack": "npm run build:electron && cross-env GH_TOKEN=${GITHUB_TOKEN} GITHUB_TOKEN=${GITHUB_TOKEN} electron-builder --dir",
     "electron:debug": "DEBUG=true open dist-electron/mac-arm64/Toolboxs.app",
     "electron:pack-debug": "npm run electron:pack && npm run electron:debug",
-    "electron:dist": "npm run build:electron && cross-env GH_TOKEN=${{ secrets.GH_TOKEN }} GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} electron-builder --publish=never"
+    "electron:dist": "npm run build:electron && cross-env GH_TOKEN=${GITHUB_TOKEN} GITHUB_TOKEN=${GITHUB_TOKEN} electron-builder --publish=never"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
