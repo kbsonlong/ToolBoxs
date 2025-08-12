@@ -129,6 +129,8 @@ env:
 
 ```yaml
 with:
+  projectPath: './app'                         # 项目路径
+  buildScript: 'tauri:build'                   # 构建脚本名称（重要！）
   tagName: ${{ github.ref_name }}              # 使用触发的标签名
   releaseName: 'Tauri App ${{ github.ref_name }}'  # Release 标题
   releaseBody: 'See the assets to download this version and install.'  # Release 描述
@@ -158,7 +160,20 @@ with:
 
 ### 常见问题
 
-#### 1. 构建失败：依赖安装错误
+#### 1. 构建失败：Missing script "tauri"
+
+**问题**: `npm error Missing script: "tauri"`
+
+**原因**: tauri-action 默认尝试运行 `npm run tauri build`，但项目中的脚本名称是 `tauri:build`
+
+**解决方案**:
+```yaml
+# 在 tauri-action 配置中指定正确的构建脚本
+with:
+  buildScript: 'tauri:build'  # 指定正确的脚本名称
+```
+
+#### 2. 构建失败：依赖安装错误
 
 **问题**: Linux 构建时系统依赖安装失败
 
@@ -168,13 +183,13 @@ with:
 runs-on: ubuntu-20.04  # 不要使用 ubuntu-latest
 ```
 
-#### 2. 版本更新失败
+#### 3. 版本更新失败
 
 **问题**: sed 命令在不同平台表现不一致
 
 **解决方案**: 工作流已使用跨平台兼容的 sed 命令
 
-#### 3. Rust 缓存问题
+#### 4. Rust 缓存问题
 
 **问题**: Rust 编译缓存导致构建失败
 
@@ -186,7 +201,7 @@ runs-on: ubuntu-20.04  # 不要使用 ubuntu-latest
   working-directory: ./app/src-tauri
 ```
 
-#### 4. 权限问题
+#### 5. 权限问题
 
 **问题**: GitHub token 权限不足
 
