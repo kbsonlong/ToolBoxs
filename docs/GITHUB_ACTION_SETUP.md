@@ -118,6 +118,48 @@ jobs:
 4. 输入版本号（如 v1.0.0）
 5. 点击 "Run workflow" 按钮
 
+### 本地构建
+```bash
+# 在 app 目录下
+npm run electron:build
+```
+
+## ⚠️ 常见问题解决
+
+### 1. GitHub API 权限错误
+如果遇到以下错误：
+```
+HTTP error 422
+"x-accepted-github-permissions": "contents=write; contents=write,workflows=write"
+```
+
+**原因**: GitHub Action 缺少必要的权限来创建 release 和上传文件
+
+**解决方案**: 已在 `electron-build.yml` 中添加权限配置：
+```yaml
+permissions:
+  contents: write  # 允许创建 release 和上传文件
+```
+
+### 2. 发布类型冲突问题
+如果遇到以下错误：
+```
+GitHub release not created reason=existing type not compatible with publishing type
+existingType=release publishingType=draft
+```
+
+**原因**: GitHub 上已存在正式 release，但 electron-builder 尝试创建 draft release
+
+**解决方案**: 已在 `package.json` 中配置：
+```json
+"publish": {
+  "provider": "github",
+  "releaseType": "release"
+}
+```
+
+- `"releaseType": "release"`: 创建正式发布而非草稿，避免与现有 release 冲突
+
 ## 注意事项
 
 1. **GitHub Token**：GitHub Action 会自动提供 `GITHUB_TOKEN`，无需手动配置

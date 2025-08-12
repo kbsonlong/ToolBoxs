@@ -88,7 +88,7 @@
     },
     "publish": {
       "provider": "github",
-      "releaseType": "draft"
+      "releaseType": "release"
     },
     "files": [
       "dist/**/*",

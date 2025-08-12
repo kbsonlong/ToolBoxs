@@ -163,6 +163,8 @@ git push origin v1.0.0
 - **自动管理**: Action 自动处理 GitHub token 和发布流程
 - **稳定性**: 使用成熟的社区解决方案，提高构建成功率
 - **维护性**: 大幅简化配置文件，易于维护和理解
+- **权限配置**: 添加 `contents: write` 权限解决 GitHub API 访问问题
+- **发布冲突解决**: 配置 `releaseType: "release"` 避免发布类型冲突
 
 > 📖 详细说明请查看：
 > - [GitHub Action 配置指南](docs/GITHUB_ACTION_SETUP.md) **← 新的简化配置说明**
