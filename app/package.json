@@ -6,7 +6,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/toolboxs.git"
+    "url": "https://github.com/kbsonlong/toolboxs.git"
   },
   "type": "module",
   "engines": {
