@@ -165,9 +165,11 @@ git push origin v1.0.0
 - **维护性**: 大幅简化配置文件，易于维护和理解
 - **权限配置**: 添加 `contents: write` 权限解决 GitHub API 访问问题
 - **发布冲突解决**: 配置 `releaseType: "release"` 避免发布类型冲突
+- **macOS 兼容性**: 配置 `hardenedRuntime` 和 `gatekeeperAssess` 解决应用损坏问题
 
 > 📖 详细说明请查看：
 > - [GitHub Action 配置指南](docs/GITHUB_ACTION_SETUP.md) **← 新的简化配置说明**
+> - [macOS 应用安装指南](docs/MACOS_APP_INSTALL_GUIDE.md) **← 解决"应用已损坏"问题**
 > - [发布指南](docs/RELEASE_GUIDE.md)
 > - [构建配置指南](docs/BUILD_CONFIGURATION_GUIDE.md)
 > - [Electron 调试指南](docs/ELECTRON_DEBUG_GUIDE.md)

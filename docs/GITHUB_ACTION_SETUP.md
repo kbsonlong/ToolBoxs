@@ -141,7 +141,39 @@ permissions:
   contents: write  # 允许创建 release 和上传文件
 ```
 
-### 2. 发布类型冲突问题
+### 2. macOS 应用损坏问题
+
+**错误信息**: `"Toolboxs"已损坏，无法打开。你应该推出磁盘映像。`
+
+**原因**: GitHub Action 构建的 macOS 应用没有进行代码签名，被 macOS Gatekeeper 安全机制阻止
+
+**解决方案**: 已在配置中添加以下设置：
+
+1. **package.json 配置**:
+```json
+"mac": {
+  "category": "public.app-category.utilities",
+  "hardenedRuntime": true,
+  "gatekeeperAssess": false,
+  "target": [...]
+}
+```
+
+2. **GitHub Action 环境变量**:
+```yaml
+env:
+  CSC_IDENTITY_AUTO_DISCOVERY: false
+  CSC_LINK: ""
+  CSC_KEY_PASSWORD: ""
+```
+
+- `"hardenedRuntime": true`: 启用强化运行时
+- `"gatekeeperAssess": false`: 跳过 Gatekeeper 评估
+- `CSC_IDENTITY_AUTO_DISCOVERY: false`: 禁用自动代码签名发现
+
+**用户解决方法**: 下载后右键点击应用 → 选择"打开" → 确认打开
+
+### 3. 发布类型冲突问题
 如果遇到以下错误：
 ```
 GitHub release not created reason=existing type not compatible with publishing type
