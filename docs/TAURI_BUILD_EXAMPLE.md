@@ -54,11 +54,12 @@ git push origin tauri-v1.0.0
    ✅ 触发工作流: Tauri Build and Release
    ```
 
-2. **并行构建三个平台**
+2. **并行构建多架构多平台**
    ```
-   🖥️  macOS (macos-latest)
-   🐧 Linux (ubuntu-20.04) 
-   🪟 Windows (windows-latest)
+   🖥️  macOS Intel (x86_64-apple-darwin)
+   🖥️  macOS Apple Silicon (aarch64-apple-darwin)
+   🐧 Linux (ubuntu-22.04, x86_64)
+   🪟 Windows (windows-latest, x86_64)
    ```
 
 3. **每个平台的构建步骤**
@@ -78,11 +79,12 @@ git push origin tauri-v1.0.0
 
 ### 构建时间参考
 
-| 平台 | 预计时间 | 主要耗时步骤 |
-|------|----------|-------------|
-| **macOS** | 8-12 分钟 | Rust 编译 (5-8分钟) |
-| **Linux** | 6-10 分钟 | 系统依赖安装 + Rust 编译 |
-| **Windows** | 10-15 分钟 | Rust 编译 + 打包 |
+| 平台 | 架构 | 预计时间 | 主要耗时步骤 |
+|------|------|----------|-------------|
+| **macOS** | Intel (x86_64) | 8-12 分钟 | Rust 编译 (5-8分钟) |
+| **macOS** | Apple Silicon (ARM64) | 8-12 分钟 | Rust 编译 (5-8分钟) |
+| **Linux** | x86_64 | 6-10 分钟 | 系统依赖安装 + Rust 编译 |
+| **Windows** | x86_64 | 10-15 分钟 | Rust 编译 + 打包 |
 
 ## 📦 版本发布示例
 
@@ -141,15 +143,19 @@ echo "🔗 访问: https://github.com/your-username/toolboxs/actions"
 ```
 📦 Release: Tauri App tauri-v1.0.0
 
-🖥️ macOS:
-├── toolboxs_1.0.0_x64.dmg          (12.5 MB) - DMG 安装包
-└── toolboxs.app.tar.gz             (8.2 MB)  - 应用包压缩文件
+🖥️ macOS (Intel x86_64):
+├── toolboxs_1.0.0_x64.dmg          (12.5 MB) - DMG 安装包 (Intel)
+└── toolboxs.app.tar.gz             (8.2 MB)  - 应用包压缩文件 (Intel)
 
-🪟 Windows:
+🖥️ macOS (Apple Silicon ARM64):
+├── toolboxs_1.0.0_aarch64.dmg      (11.8 MB) - DMG 安装包 (Apple Silicon)
+└── toolboxs.app.tar.gz             (7.9 MB)  - 应用包压缩文件 (Apple Silicon)
+
+🪟 Windows (x86_64):
 ├── toolboxs_1.0.0_x64_en-US.msi    (15.3 MB) - MSI 安装程序
 └── toolboxs_1.0.0_x64.exe          (18.7 MB) - 便携版可执行文件
 
-🐧 Linux:
+🐧 Linux (x86_64):
 ├── toolboxs_1.0.0_amd64.AppImage   (22.1 MB) - AppImage 便携应用
 └── toolboxs_1.0.0_amd64.deb        (8.9 MB)  - Debian 安装包
 ```

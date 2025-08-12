@@ -44,13 +44,20 @@ git push origin tauri-v1.0.0
 
 ## 🏗️ 构建矩阵
 
-工作流支持三个平台的并行构建：
+工作流支持多架构多平台的并行构建：
 
-| 平台 | 运行环境 | 输出格式 |
-|------|----------|----------|
-| **Windows** | `windows-latest` | `.msi`, `.exe` |
-| **macOS** | `macos-latest` | `.dmg`, `.app` |
-| **Linux** | `ubuntu-20.04` | `.AppImage`, `.deb` |
+| 平台 | 运行环境 | 架构 | 输出格式 |
+|------|----------|------|----------|
+| **Windows** | `windows-latest` | `x86_64` | `.msi`, `.exe` |
+| **macOS (Intel)** | `macos-latest` | `x86_64-apple-darwin` | `.dmg`, `.app` |
+| **macOS (Apple Silicon)** | `macos-latest` | `aarch64-apple-darwin` | `.dmg`, `.app` |
+| **Linux** | `ubuntu-22.04` | `x86_64` | `.AppImage`, `.deb` |
+
+### 多架构支持
+
+- **macOS**: 同时构建 Intel (x86_64) 和 Apple Silicon (ARM64) 版本
+- **Windows**: 构建 x86_64 版本
+- **Linux**: 构建 x86_64 版本
 
 ### Linux 依赖安装
 
@@ -58,8 +65,10 @@ git push origin tauri-v1.0.0
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 ```
+
+> **注意**: webkitgtk 4.0 用于 Tauri v1，webkitgtk 4.1 用于 Tauri v2。可以根据项目版本移除不需要的依赖以加速构建。
 
 ## 📦 版本管理
 
@@ -138,6 +147,7 @@ with:
   prerelease: false                            # 不标记为预发布
   includeDebug: false                          # 不包含调试版本
   includeRelease: true                         # 包含发布版本
+  args: ${{ matrix.args }}                     # 多架构构建参数
 ```
 
 ### 构建产物
@@ -148,9 +158,13 @@ with:
 - `toolboxs_1.0.0_x64_en-US.msi` - MSI 安装程序
 - `toolboxs_1.0.0_x64.exe` - 便携版可执行文件
 
-**macOS:**
-- `toolboxs_1.0.0_x64.dmg` - DMG 安装包
-- `toolboxs.app.tar.gz` - 应用包压缩文件
+**macOS (Intel x86_64):**
+- `toolboxs_1.0.0_x64.dmg` - DMG 安装包 (Intel)
+- `toolboxs.app.tar.gz` - 应用包压缩文件 (Intel)
+
+**macOS (Apple Silicon ARM64):**
+- `toolboxs_1.0.0_aarch64.dmg` - DMG 安装包 (Apple Silicon)
+- `toolboxs.app.tar.gz` - 应用包压缩文件 (Apple Silicon)
 
 **Linux:**
 - `toolboxs_1.0.0_amd64.AppImage` - AppImage 便携应用

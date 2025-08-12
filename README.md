@@ -208,9 +208,10 @@ git push origin tauri-v1.0.0
 3. 点击 "Run workflow" 并输入版本号
 
 Tauri 自动构建将生成：
-- **macOS**: DMG 安装包和 .app 应用包
-- **Windows**: MSI 安装程序和便携版
-- **Linux**: AppImage 和 DEB 包
+- **macOS (Intel)**: DMG 安装包和 .app 应用包 (x86_64)
+- **macOS (Apple Silicon)**: DMG 安装包和 .app 应用包 (ARM64)
+- **Windows**: MSI 安装程序和便携版 (x86_64)
+- **Linux**: AppImage 和 DEB 包 (x86_64)
 
 ### GitHub Action 配置说明
 
@@ -219,6 +220,7 @@ Tauri 自动构建将生成：
 - 🚀 **简化配置**: 使用专门的 Electron 构建 Action，自动处理构建和发布
 - 🔧 **内置优化**: 针对 Electron 应用优化的构建流程和缓存策略
 - 🌍 **跨平台支持**: 自动支持 macOS、Windows 和 Linux 三大平台
+- 🏗️ **多架构构建**: Tauri 支持 macOS Intel/Apple Silicon 双架构构建
 - 📦 **智能发布**: 根据版本标签自动创建 GitHub Release
 - ✅ **问题解决**: 彻底解决了 Token 配置和跨平台兼容性问题
 

@@ -45,6 +45,32 @@ echo "✅ Rust 版本: $rust_version"
 cargo_version=$(cargo --version)
 echo "✅ Cargo 版本: $cargo_version"
 
+# 检查 Rust 目标架构支持
+echo "\n🎯 检查 Rust 目标架构支持..."
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "🖥️  检查 macOS 多架构支持..."
+    
+    # 检查 x86_64-apple-darwin 目标
+    if rustup target list --installed | grep -q "x86_64-apple-darwin"; then
+        echo "✅ x86_64-apple-darwin 目标已安装"
+    else
+        echo "⚠️  x86_64-apple-darwin 目标未安装，正在安装..."
+        rustup target add x86_64-apple-darwin
+    fi
+    
+    # 检查 aarch64-apple-darwin 目标
+    if rustup target list --installed | grep -q "aarch64-apple-darwin"; then
+        echo "✅ aarch64-apple-darwin 目标已安装"
+    else
+        echo "⚠️  aarch64-apple-darwin 目标未安装，正在安装..."
+        rustup target add aarch64-apple-darwin
+    fi
+    
+    echo "✅ macOS 多架构支持已配置"
+else
+    echo "ℹ️  当前平台: $OSTYPE (非 macOS，跳过多架构检查)"
+fi
+
 # 检查 Tauri CLI
 echo "\n🔧 检查 Tauri CLI..."
 if ! npm list @tauri-apps/cli &> /dev/null; then
@@ -133,4 +159,8 @@ echo "\n💡 使用方法:"
 echo "   1. 创建标签: git tag tauri-v1.0.0"
 echo "   2. 推送标签: git push origin tauri-v1.0.0"
 echo "   3. 查看 GitHub Actions 构建进度"
+echo "\n🏗️  多架构构建支持:"
+echo "   • macOS: 同时构建 Intel (x86_64) 和 Apple Silicon (ARM64) 版本"
+echo "   • Windows: 构建 x86_64 版本"
+echo "   • Linux: 构建 x86_64 版本"
 echo "\n📚 更多信息请查看: docs/TAURI_GITHUB_ACTION_SETUP.md"
