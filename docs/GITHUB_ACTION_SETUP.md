@@ -1,82 +1,102 @@
-# GitHub Action 构建配置指南
+# GitHub Action 配置指南
 
-## 概述
+本指南详细说明了如何配置 GitHub Action 来自动构建和发布 Electron 应用。
 
-本文档说明如何正确配置 GitHub Action 来构建和发布 Electron 应用，解决 "GitHub Personal Access Token is not set" 的问题。
+## 新配置说明
 
-## 问题分析
+### 使用 samuelmeuli/action-electron-builder
 
-根据 [electron-builder 官方文档](https://www.electron.build/publish.html#github-repository)，当检测到 `GH_TOKEN` 或 `GITHUB_TOKEN` 环境变量时，electron-builder 会自动尝试发布到 GitHub。但在我们的构建流程中：
+我们现在使用了专门的 `samuelmeuli/action-electron-builder` Action，这是一个成熟的 Electron 构建解决方案，具有以下优势：
 
-1. 我们使用 `--publish=never` 参数明确禁止自动发布
-2. 我们有独立的 release job 来处理发布流程
-3. 这导致了配置冲突
+- 🚀 **简化配置**: 自动处理构建和发布流程
+- 🔧 **内置优化**: 针对 Electron 应用优化的构建流程
+- 🌍 **跨平台支持**: 自动支持 macOS、Windows 和 Linux
+- 📦 **自动发布**: 根据标签自动创建 GitHub Release
 
-## 解决方案
-
-### 1. 环境变量控制
-
-在所有 electron-builder 相关的构建步骤中，我们明确设置：
+### 配置文件结构
 
 ```yaml
-env:
-  GH_TOKEN: ""          # 明确设置为空，避免自动发布
-  GITHUB_TOKEN: ""      # 明确设置为空，避免自动发布
+name: Build/release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # 当推送版本标签时触发
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: './app/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./app
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+
+      - name: Update version from tag
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        run: |
+          # 版本更新逻辑
+        working-directory: ./app
+        shell: bash
+
+      - name: Type check
+        run: npm run type-check
+        working-directory: ./app
+
+      - name: Build/release Electron app
+        uses: samuelmeuli/action-electron-builder@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          release: ${{ startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' }}
+          package_root: "./app"
+          build_script_name: "build"
+          skip_build: false
 ```
 
-### 2. 统一构建流程
+## 主要改进
 
-使用矩阵策略支持多平台构建：
+### 1. 简化的构建流程
 
-```yaml
-strategy:
-  matrix:
-    os: [macos-latest, windows-latest, ubuntu-latest]
-    include:
-      - os: macos-latest
-        platform: mac
-        arch: arm64,x64
-        ext: dmg
-      - os: windows-latest
-        platform: win
-        arch: x64
-        ext: exe
-      - os: ubuntu-latest
-        platform: linux
-        arch: x64
-        ext: AppImage
-```
+- **单一 Job**: 不再需要分离的构建和发布 Job
+- **自动发布**: Action 自动处理 GitHub Release 创建
+- **智能缓存**: 自动处理依赖缓存和构建缓存
 
-### 3. package.json 配置
+### 2. 解决的问题
 
-在 `app/package.json` 中添加 publish 配置：
+#### Token 问题解决
+- ✅ 使用 `${{ secrets.github_token }}` (小写)
+- ✅ Action 自动管理 token，无需手动配置
+- ✅ 不再出现 "GitHub Personal Access Token is not set" 错误
 
-```json
-{
-  "build": {
-    "publish": {
-      "provider": "github",
-      "releaseType": "draft"
-    }
-  }
-}
-```
+#### 跨平台兼容性
+- ✅ 自动处理不同操作系统的构建差异
+- ✅ 统一的构建命令，无需平台特定逻辑
+- ✅ 自动生成适合各平台的安装包
 
-## 构建流程说明
+### 3. 支持的参数
 
-### Build Job
-
-1. **环境准备**：安装 Node.js 和依赖
-2. **版本更新**：根据 tag 或手动输入更新版本号
-3. **类型检查**：运行 TypeScript 类型检查
-4. **构建应用**：使用统一的构建命令支持多平台
-5. **上传制品**：将构建结果上传为 GitHub Artifacts
-
-### Release Job
-
-1. **下载制品**：从 build job 下载所有构建制品
-2. **创建发布**：创建 GitHub Release
-3. **上传资源**：使用 GitHub CLI 上传构建文件
+- `package_root`: 包根目录 (默认: `".")`
+- `build_script_name`: 构建脚本名称 (默认: `"build"`)
+- `skip_build`: 是否跳过构建步骤
+- `use_vue_cli`: 是否使用 Vue CLI 插件
+- `args`: 传递给 electron-builder 的额外参数
+- `max_attempts`: 最大重试次数
 
 ## 使用方法
 

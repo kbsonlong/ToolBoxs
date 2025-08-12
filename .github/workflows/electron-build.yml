@@ -1,4 +1,4 @@
-name: Build and Release Electron App
+name: Build/release
 
 on:
   push:
@@ -12,188 +12,66 @@ on:
         default: 'v1.0.0'
 
 jobs:
-  build:
+  release:
+    runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        include:
-          - os: macos-latest
-            platform: mac
-            arch: arm64,x64
-            ext: dmg
-          - os: windows-latest
-            platform: win
-            arch: x64
-            ext: exe
-          - os: ubuntu-latest
-            platform: linux
-            arch: x64
-            ext: AppImage
-         
-    
-    runs-on: ${{ matrix.os }}
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: './app/package-lock.json'
-        
-    - name: Install dependencies
-      run: npm ci
-      working-directory: ./app
-      env:
-        CYPRESS_INSTALL_BINARY: 0  # 跳过 Cypress 二进制文件安装
-      
-    - name: Update version from tag
-      if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
-      run: |
-        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          VERSION="${{ github.event.inputs.version }}"
-        else
-          VERSION="${GITHUB_REF#refs/tags/}"
-        fi
-        # 移除版本号前的 'v' 前缀（如果存在）
-        VERSION_NUMBER=${VERSION#v}
-        echo "Updating version to: $VERSION_NUMBER"
-        # 使用 npm version 命令更新版本号
-        npm version $VERSION_NUMBER --no-git-tag-version
-      working-directory: ./app
-      shell: bash
-      
-    - name: Type check
-      run: npm run type-check
-      working-directory: ./app
-      
-    - name: Build Electron app for ${{ matrix.platform }}
-      run: |
-        if [[ "${{ matrix.platform }}" == "mac" ]]; then
-          npm run electron:dist -- --mac --universal --publish=never
-        elif [[ "${{ matrix.platform }}" == "win" ]]; then
-          npm run electron:dist -- --win --x64 --publish=never
-        elif [[ "${{ matrix.platform }}" == "linux" ]]; then
-          npm run electron:dist -- --linux --x64 --publish=never
-        fi
-      working-directory: ./app
-      shell: bash
-      env:
-        ELECTRON_BUILDER_CACHE: .cache/electron-builder
-        CYPRESS_INSTALL_BINARY: 0
-        CSC_IDENTITY_AUTO_DISCOVERY: false  # 跳过代码签名
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      
-    - name: List build artifacts
-      run: |
-        echo "Build artifacts:"
-        ls -la ./app/dist-electron/
-        
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.platform }}-${{ matrix.arch }}
-        path: |
-          ./app/dist-electron/*.${{ matrix.ext }}
-          ./app/dist-electron/latest*.yml
-        retention-days: 30
+        os: [macos-latest, ubuntu-latest, windows-latest]
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
-    
-    permissions:
-      contents: write
-      
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: ./artifacts
-        
-    - name: Display structure of downloaded files
-      run: |
-        echo "Downloaded artifacts:"
-        find ./artifacts -type f -name "*" | head -20
-        
-    - name: Get version
-      id: version
-      run: |
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-        else
-          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-        fi
-        
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.version.outputs.version }}
-        release_name: ToolBoxs ${{ steps.version.outputs.version }}
-        body: |
-          ## 🎉 ToolBoxs ${{ steps.version.outputs.version }} 发布
-          
-          ### 📦 下载链接
-          
-          - **macOS**: 下载 `.dmg` 文件
-          - **Windows**: 下载 `.exe` 文件  
-          - **Linux**: 下载 `.AppImage` 文件
-          
-          ### ✨ 主要特性
-          
-          - 🔧 多种实用工具集合
-          - 🌐 支持 Web 和桌面双平台
-          - 🎨 现代化 UI 设计
-          - 🚀 高性能本地应用
-          
-          ### 🔄 更新说明
-          
-          请查看 [更新日志](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) 了解详细更新内容。
-          
-          ---
-          
-          **安装说明**:
-          - macOS: 下载 DMG 文件，双击安装
-          - Windows: 下载 EXE 文件，运行安装
-          - Linux: 下载 AppImage 文件，添加执行权限后运行
-        draft: false
-        prerelease: false
-        
-    - name: Upload release assets
-      run: |
-        # Upload macOS DMG
-        if [ -f "./artifacts/mac-arm64,x64/"*.dmg ]; then
-          for file in ./artifacts/mac-arm64,x64/*.dmg; do
-            filename=$(basename "$file")
-            gh release upload ${{ steps.version.outputs.version }} "$file" --clobber
-          done
-        fi
-        
-        # Upload Windows installer
-        if [ -f "./artifacts/win-x64/"*.exe ]; then
-          for file in ./artifacts/win-x64/*.exe; do
-            filename=$(basename "$file")
-            gh release upload ${{ steps.version.outputs.version }} "$file" --clobber
-          done
-        fi
-        
-        # Upload Linux AppImage
-        if [ -f "./artifacts/linux-x64/"*.AppImage ]; then
-          for file in ./artifacts/linux-x64/*.AppImage; do
-            filename=$(basename "$file")
-            gh release upload ${{ steps.version.outputs.version }} "$file" --clobber
-          done
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: './app/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./app
+        env:
+          CYPRESS_INSTALL_BINARY: 0  # 跳过 Cypress 二进制文件安装
+
+      - name: Update version from tag
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          # 移除版本号前的 'v' 前缀（如果存在）
+          VERSION_NUMBER=${VERSION#v}
+          echo "Updating version to: $VERSION_NUMBER"
+          # 使用 npm version 命令更新版本号
+          npm version $VERSION_NUMBER --no-git-tag-version
+        working-directory: ./app
+        shell: bash
+
+      - name: Type check
+        run: npm run type-check
+        working-directory: ./app
+
+      - name: Build/release Electron app
+        uses: samuelmeuli/action-electron-builder@v1
+        with:
+          # GitHub token, automatically provided to the action
+          # (No need to define this secret in the repo settings)
+          github_token: ${{ secrets.github_token }}
+
+          # If the commit is tagged with a version (e.g. "v1.0.0"),
+          # release the app after building
+          release: ${{ startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' }}
+
+          # Package root directory
+          package_root: "./app"
+
+          # Build script name
+          build_script_name: "build"
+
+          # Skip build step
+          skip_build: false
