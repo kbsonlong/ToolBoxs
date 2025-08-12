@@ -1,0 +1,148 @@
+name: Tauri Build and Release
+
+on:
+  push:
+    tags:
+      - 'tauri-v*.*.*'  # 当推送 Tauri 版本标签时触发
+  workflow_dispatch:  # 允许手动触发
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write  # 允许创建 release 和上传文件
+
+jobs:
+  build-tauri:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest, ubuntu-20.04, windows-latest]
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-20.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Rust setup
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './app/src-tauri -> target'
+
+      - name: Sync node version and setup cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './app/package-lock.json'
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: ./app
+        env:
+          CYPRESS_INSTALL_BINARY: 0  # 跳过 Cypress 二进制文件安装
+
+      - name: Update version from tag
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/tauri-}"
+          fi
+          # 移除版本号前的 'v' 前缀（如果存在）
+          VERSION_NUMBER=${VERSION#v}
+          echo "Updating version to: $VERSION_NUMBER"
+          # 更新前端 package.json 版本
+          npm version $VERSION_NUMBER --no-git-tag-version
+          # 更新 Tauri Cargo.toml 版本
+          sed -i.bak "s/^version = \".*\"/version = \"$VERSION_NUMBER\"/" src-tauri/Cargo.toml
+          # 更新 tauri.conf.json 版本
+          sed -i.bak "s/\"version\": \".*\"/\"version\": \"$VERSION_NUMBER\"/" src-tauri/tauri.conf.json
+        working-directory: ./app
+        shell: bash
+
+      - name: Type check
+        run: npm run type-check
+        working-directory: ./app
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./app
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # macOS code signing environment variables (可选)
+          # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          # APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          projectPath: './app'
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Tauri App ${{ github.ref_name }}'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: true
+          prerelease: false
+          includeDebug: false
+          includeRelease: true
+
+  # 可选：构建调试版本用于测试
+  build-debug:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Rust setup
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './app/src-tauri -> target'
+
+      - name: Sync node version and setup cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './app/package-lock.json'
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: ./app
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./app
+
+      - name: Build Tauri debug app
+        run: npm run tauri:build:debug
+        working-directory: ./app
+
+      - name: Upload debug artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-debug-macos
+          path: |
+            ./app/src-tauri/target/debug/bundle/
+          retention-days: 7

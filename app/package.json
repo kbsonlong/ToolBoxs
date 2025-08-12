@@ -33,7 +33,10 @@
     "electron:pack": "npm run build:electron &&  electron-builder --dir",
     "electron:debug": "DEBUG=true open dist-electron/mac-arm64/Toolboxs.app",
     "electron:pack-debug": "npm run electron:pack && npm run electron:debug",
-    "electron:dist": "npm run build:electron &&  electron-builder --publish=never"
+    "electron:dist": "npm run build:electron && electron-builder --publish=never",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build:debug": "tauri build --debug"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
@@ -46,6 +49,8 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@tauri-apps/api": "^2.7.0",
+    "@tauri-apps/cli": "^2.7.1",
     "@tsconfig/node22": "^22.0.2",
     "@types/crypto-js": "^4.2.2",
     "@types/jsdom": "^21.1.7",

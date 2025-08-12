@@ -77,9 +77,13 @@ toolboxs/
 └── utility-tools/        # 工具设计文档
 ```
 
-## 🖥️ Electron 桌面应用
+## 🖥️ 桌面应用
 
-### 本地开发
+项目同时支持 **Electron** 和 **Tauri** 两种桌面应用解决方案：
+
+### Electron 桌面应用
+
+#### 本地开发
 
 ```bash
 # 开发模式运行 Electron
@@ -91,6 +95,29 @@ npm run electron:build
 # 打包发布版本
 npm run electron:dist
 ```
+
+### Tauri 桌面应用
+
+#### 本地开发
+
+```bash
+# 开发模式运行 Tauri
+npm run tauri:dev
+
+# 构建 Tauri 应用
+npm run tauri:build
+
+# 调试构建
+npm run tauri:build:debug
+```
+
+#### Tauri 优势
+
+- **体积更小**: 应用包体积显著减少
+- **性能更好**: 使用系统原生 WebView
+- **安全性强**: 更严格的安全模型
+- **资源占用低**: 内存和 CPU 使用更少
+- **跨平台支持**: Windows、macOS、Linux
 
 ### 自动版本管理
 
@@ -118,10 +145,12 @@ git push origin v1.2.3
 
 ### 本地测试
 
-运行完整的构建测试：
+#### Electron 构建测试
+
+运行完整的 Electron 构建测试：
 
 ```bash
-# 执行构建测试脚本
+# 执行 Electron 构建测试脚本
 ./scripts/test-build.sh
 ```
 
@@ -132,12 +161,30 @@ git push origin v1.2.3
 - 资源路径配置
 - Electron 打包
 
+#### Tauri 构建测试
+
+运行完整的 Tauri 构建测试：
+
+```bash
+# 执行 Tauri 构建测试脚本
+./scripts/test-tauri-build.sh
+```
+
+该脚本会验证：
+- Rust 环境配置
+- Tauri CLI 安装
+- 前端构建
+- Tauri 调试构建
+- 构建产物检查
+
 ### 自动发布
 
 项目配置了 GitHub Actions 自动构建和发布流程：
 
+#### Electron 应用发布
+
 ```bash
-# 创建版本标签触发自动构建
+# 创建版本标签触发 Electron 自动构建
 git tag v1.0.0
 git push origin v1.0.0
 ```
@@ -146,6 +193,24 @@ git push origin v1.0.0
 - **macOS**: Universal DMG 安装包
 - **Windows**: NSIS 安装程序
 - **Linux**: AppImage 便携应用
+
+#### Tauri 应用发布
+
+```bash
+# 创建 Tauri 版本标签触发自动构建
+git tag tauri-v1.0.0
+git push origin tauri-v1.0.0
+```
+
+或者手动触发构建：
+1. 访问 GitHub Actions 页面
+2. 选择 "Tauri Build and Release"
+3. 点击 "Run workflow" 并输入版本号
+
+Tauri 自动构建将生成：
+- **macOS**: DMG 安装包和 .app 应用包
+- **Windows**: MSI 安装程序和便携版
+- **Linux**: AppImage 和 DEB 包
 
 ### GitHub Action 配置说明
 
@@ -168,7 +233,9 @@ git push origin v1.0.0
 - **macOS 兼容性**: 配置 `hardenedRuntime` 和 `gatekeeperAssess` 解决应用损坏问题
 
 > 📖 详细说明请查看：
-> - [GitHub Action 配置指南](docs/GITHUB_ACTION_SETUP.md) **← 新的简化配置说明**
+> - [GitHub Action 配置指南](docs/GITHUB_ACTION_SETUP.md) **← Electron 构建配置说明**
+> - [Tauri GitHub Action 配置指南](docs/TAURI_GITHUB_ACTION_SETUP.md) **← Tauri 构建配置说明**
+> - [Tauri 构建示例](docs/TAURI_BUILD_EXAMPLE.md) **← Tauri 构建完整示例**
 > - [macOS 应用安装指南](docs/MACOS_APP_INSTALL_GUIDE.md) **← 解决"应用已损坏"问题**
 > - [发布指南](docs/RELEASE_GUIDE.md)
 > - [构建配置指南](docs/BUILD_CONFIGURATION_GUIDE.md)
