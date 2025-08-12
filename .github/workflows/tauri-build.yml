@@ -109,7 +109,7 @@ jobs:
           # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           projectPath: './app'
-          tauriScript: 'npm run tauri:build'
+          tauriScript: 'npm run tauri'
           tagName: ${{ github.ref_name }}
           releaseName: 'Tauri App ${{ github.ref_name }}'
           releaseBody: 'See the assets to download this version and install.'
