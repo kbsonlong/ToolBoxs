@@ -74,7 +74,7 @@ jobs:
           package_root: "./app"
 
           # Build script name
-          build_script_name: "build"
+          build_script_name: "electron:build"
 
           # Skip build step
           skip_build: false
