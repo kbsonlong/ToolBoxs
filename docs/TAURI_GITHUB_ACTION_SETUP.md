@@ -139,7 +139,7 @@ env:
 ```yaml
 with:
   projectPath: './app'                         # 项目路径
-  buildScript: 'tauri:build'                   # 构建脚本名称（重要！）
+  tauriScript: 'npm run tauri:build'           # Tauri CLI 执行脚本（重要！）
   tagName: ${{ github.ref_name }}              # 使用触发的标签名
   releaseName: 'Tauri App ${{ github.ref_name }}'  # Release 标题
   releaseBody: 'See the assets to download this version and install.'  # Release 描述
@@ -182,9 +182,9 @@ with:
 
 **解决方案**:
 ```yaml
-# 在 tauri-action 配置中指定正确的构建脚本
+# 在 tauri-action 配置中指定正确的 Tauri CLI 脚本
 with:
-  buildScript: 'tauri:build'  # 指定正确的脚本名称
+  tauriScript: 'npm run tauri:build'  # 指定完整的脚本执行命令
 ```
 
 #### 2. 构建失败：依赖安装错误
