@@ -81,5 +81,3 @@ jobs:
         env:
           # macOS code signing environment variables
           CSC_IDENTITY_AUTO_DISCOVERY: false
-          CSC_LINK: ""
-          CSC_KEY_PASSWORD: ""
