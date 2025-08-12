@@ -127,6 +127,23 @@ strategy:
 2. 检查是否有其他地方设置了这些环境变量
 3. 考虑在 repository secrets 中明确设置这些变量为空值
 
+### Windows PowerShell 语法错误
+
+**问题**: 在 Windows runner 中出现 `Missing '(' after 'if' in if statement` 错误
+
+**原因**: Windows PowerShell 无法正确解析 bash 的单括号条件判断语法 `[ condition ]`
+
+**解决方案**: 使用双括号语法 `[[ condition ]]` 并明确指定 `shell: bash`
+
+**修复示例**:
+```yaml
+# 错误的写法
+if [ "$condition" = "value" ]; then
+
+# 正确的写法
+if [[ "$condition" == "value" ]]; then
+```
+
 ## 参考资料
 
 - [electron-builder 发布文档](https://www.electron.build/publish.html)
